@@ -10,38 +10,14 @@ import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, Li
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement);
 
 const props = defineProps({
-    employees: { type: Array, default: () => [] }
+    deptDataProps: { type: Object, required: true },
+    hiringTrendDataProps: { type: Object, required: true }
 });
 
 const { t } = useI18n();
 
-const deptData = computed(() => {
-    const counts = {};
-    props.employees.forEach(e => {
-        counts[e.department] = (counts[e.department] || 0) + 1;
-    });
-    const entries = Object.entries(counts);
-    return {
-        labels: entries.map(x => x[0]),
-        datasets: [{
-            data: entries.map(x => x[1]),
-            backgroundColor: ['#1e40af', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
-            borderWidth: 0,
-            hoverOffset: 4
-        }]
-    };
-});
-
-const hiringTrendData = {
-    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'],
-    datasets: [{
-        label: 'Кормандони нав',
-        data: [2, 5, 3, 8, 4, 7],
-        backgroundColor: '#1e40af',
-        borderRadius: 4,
-        barPercentage: 0.5
-    }]
-};
+const deptData = computed(() => props.deptDataProps);
+const hiringTrendData = computed(() => props.hiringTrendDataProps);
 
 const barOptions = {
     responsive: true,

@@ -8,16 +8,30 @@ use Inertia\Inertia;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch real employees and process skills json
-        $employees = Employee::all()->map(function($emp) {
+        $query = Employee::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%");
+            });
+        }
+
+        $employees = $query->paginate(15)->withQueryString();
+        
+        // Ensure skills are decoded (Laravel pagination manipulates underlying collection through mapping)
+        $employees->getCollection()->transform(function ($emp) {
             $emp->skills = json_decode($emp->skills, true) ?? [];
             return $emp;
         });
 
         return Inertia::render('Employees', [
-            'employees' => $employees
+            'employees' => $employees,
+            'filters' => $request->only('search')
         ]);
     }
 

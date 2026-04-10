@@ -2,7 +2,7 @@
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { 
     Users, Plus, Search, Filter, Download, UploadCloud,
     MoreHorizontal, Edit2, Trash2, Mail
@@ -31,15 +31,20 @@ const handleImport = (e) => {
 };
 
 const props = defineProps({
-    employees: Array
+    employees: Object,
+    filters: Object
 });
 
 const { t } = useI18n();
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isModalOpen = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
+
+watch(searchQuery, (value) => {
+    router.get('/employees', { search: value }, { preserveState: true, replace: true });
+});
 
 const form = useForm({
     name: '',
@@ -144,7 +149,7 @@ const deleteEmployee = (id) => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="emp in employees" :key="emp.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02] transition-colors group">
+                            <tr v-for="emp in employees.data" :key="emp.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02] transition-colors group">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="h-10 w-10 rounded-full bg-[hsl(var(--primary))]/10 flex items-center justify-center text-[hsl(var(--primary))] font-bold shadow-sm">
@@ -183,6 +188,21 @@ const deleteEmployee = (id) => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Links -->
+                <div v-if="employees.links && employees.links.length > 3" class="p-4 border-t border-[hsl(var(--border))] flex items-center justify-center gap-1">
+                    <template v-for="(link, key) in employees.links" :key="key">
+                        <button 
+                            @click="link.url && router.get(link.url, { search: searchQuery }, { preserveState: true })"
+                            :class="[
+                                'px-3 py-1 text-xs font-bold rounded-md transition-colors',
+                                link.active ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]',
+                                !link.url ? 'opacity-50 cursor-not-allowed' : ''
+                            ]"
+                            v-html="link.label"
+                        ></button>
+                    </template>
                 </div>
             </div>
         </div>

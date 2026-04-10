@@ -38,8 +38,25 @@ Route::middleware('auth')->group(function () {
     Route::post('/recruitment/generate', [\App\Http\Controllers\RecruitmentController::class, 'generateDescription']);
 
     Route::get('/archive', function () { 
-        $employees = \App\Models\Employee::all();
+        $employees = \App\Models\Employee::onlyTrashed()->get();
         return Inertia::render('Archive', ['employees' => $employees]); 
+    });
+
+    Route::post('/archive', function (\Illuminate\Http\Request $request) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email'.(\App\Models\Employee::where('email', $request->email)->exists() ? '' : '|unique:employees,email'),
+            'role' => 'required|string',
+            'department' => 'required|string',
+        ]);
+        
+        $validated['status'] = 'Retired';
+        
+        $employee = \App\Models\Employee::create($validated);
+        $employee->delete();
+        
+        return redirect()->back();
     });
 
     Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index']);
@@ -60,15 +77,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index']);
     Route::get('/reports/download/{type}', [\App\Http\Controllers\ReportController::class, 'download']);
 
-    Route::get('/analytics', function () { 
-        $employees = \App\Models\Employee::all();
-        return Inertia::render('Analytics', ['employees' => $employees]); 
-    });
+    Route::get('/analytics', [\App\Http\Controllers\AnalyticsController::class, 'index']);
 
     Route::get('/advisor', [\App\Http\Controllers\AdvisorController::class, 'index']);
     Route::post('/advisor/generate', [\App\Http\Controllers\AdvisorController::class, 'generate']);
 
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminController::class, 'usersIndex']);
         Route::post('/users', [\App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::put('/users/{user}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
