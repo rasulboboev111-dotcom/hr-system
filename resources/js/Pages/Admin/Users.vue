@@ -2,7 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { 
   ShieldCheck, Shield, UserPlus, Search, Edit2, Trash2, CheckCircle2, ChevronRight, Info
 } from 'lucide-vue-next';
@@ -40,9 +40,22 @@ const permissions = ref([
     { id: 'edit_all', name: 'Таҳрири ҳама', category: 'Умумӣ', description: 'Имкони таҳрири ҳамаи маълумот' }
 ]);
 
-const usersList = computed(() => props.users.length ? props.users : [
-    { id: 1, username: 'admin', first_name: 'Super', last_name: 'Admin', email: 'admin@siizi.ru', roleIds: ['admin'] }
-]);
+const searchQuery = ref('');
+
+const usersList = computed(() => {
+    const defaultList = props.users.length ? props.users : [
+        { id: 1, username: 'admin', first_name: 'Super', last_name: 'Admin', email: 'admin@siizi.ru', roleIds: ['admin'] }
+    ];
+    
+    if (!searchQuery.value) return defaultList;
+    const lower = searchQuery.value.toLowerCase();
+    
+    return defaultList.filter(u => 
+        ((u.first_name || '') + ' ' + (u.last_name || '')).toLowerCase().includes(lower) ||
+        (u.username || '').toLowerCase().includes(lower) ||
+        (u.email || '').toLowerCase().includes(lower)
+    );
+});
 
 const openAddUserModal = () => {
     isEditingUser.value = false;
@@ -148,7 +161,7 @@ const handleDeleteUser = (id) => {
                         <div class="p-6 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/5 flex items-center justify-between">
                             <div class="relative max-w-sm flex-1">
                                 <Search class="absolute left-3.5 top-3 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
-                                <input :placeholder="t('common.search')" class="pl-11 h-10 w-full text-xs rounded-xl border-none bg-[hsl(var(--muted))]/20 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
+                                <input v-model="searchQuery" :placeholder="t('common.search')" class="pl-11 h-10 w-full text-xs rounded-xl border-none bg-[hsl(var(--muted))]/20 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="text-[9px] font-bold border border-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 px-4 py-1.5 rounded-full uppercase tracking-tighter">

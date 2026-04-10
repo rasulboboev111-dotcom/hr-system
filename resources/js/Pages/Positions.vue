@@ -2,7 +2,7 @@
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { 
     Briefcase, Plus, Search, Filter, Download, 
     MoreHorizontal, Edit2, Trash2, Users2, ShieldCheck, HelpCircle
@@ -16,6 +16,15 @@ const props = defineProps({
 const { t } = useI18n();
 
 const searchQuery = ref('');
+const filteredPositions = computed(() => {
+    if (!searchQuery.value) return props.positions;
+    const lower = searchQuery.value.toLowerCase();
+    return props.positions.filter(p => 
+        (p.title || '').toLowerCase().includes(lower) || 
+        (p.department || '').toLowerCase().includes(lower)
+    );
+});
+
 const isModalOpen = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
@@ -157,7 +166,7 @@ const deletePosition = (id) => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="pos in positions" :key="pos.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02]">
+                            <tr v-for="pos in filteredPositions" :key="pos.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02]">
                                 <td class="px-6 py-4 text-[hsl(var(--muted-foreground))] font-mono">POS-{{ String(pos.id).padStart(4, '0') }}</td>
                                 <td class="px-6 py-4 font-bold">{{ pos.title }}</td>
                                 <td class="px-6 py-4">

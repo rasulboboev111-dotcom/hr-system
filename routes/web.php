@@ -37,9 +37,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/recruitment', [\App\Http\Controllers\RecruitmentController::class, 'index']);
     Route::post('/recruitment/generate', [\App\Http\Controllers\RecruitmentController::class, 'generateDescription']);
 
-    Route::get('/archive', function () { 
-        $employees = \App\Models\Employee::onlyTrashed()->get();
-        return Inertia::render('Archive', ['employees' => $employees]); 
+    Route::get('/archive', function (\Illuminate\Http\Request $request) { 
+        $query = \App\Models\Employee::onlyTrashed();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%");
+            });
+        }
+        
+        return Inertia::render('Archive', [
+            'employees' => $query->get(),
+            'filters' => $request->only('search')
+        ]); 
     });
 
     Route::post('/archive', function (\Illuminate\Http\Request $request) {

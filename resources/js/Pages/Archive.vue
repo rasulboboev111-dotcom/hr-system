@@ -1,22 +1,18 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { History, Search, Calendar, MoreVertical, Plus } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
-    employees: { type: Array, default: () => [] }
+    employees: { type: Array, default: () => [] },
+    filters: Object
 });
 
-const searchTerm = ref('');
-const retiredEmployees = computed(() => {
-    if (!searchTerm.value) return props.employees;
-    const lower = searchTerm.value.toLowerCase();
-    return props.employees.filter(e => 
-        (e.name + ' ' + e.last_name).toLowerCase().includes(lower) ||
-        (e.role || '').toLowerCase().includes(lower) ||
-        (e.department || '').toLowerCase().includes(lower)
-    );
+const searchTerm = ref(props.filters?.search || '');
+
+watch(searchTerm, (value) => {
+    router.get('/archive', { search: value }, { preserveState: true, replace: true });
 });
 
 const isModalOpen = ref(false);
@@ -79,8 +75,8 @@ const submitForm = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            <template v-if="retiredEmployees.length > 0">
-                                <tr v-for="(emp, i) in retiredEmployees" :key="emp.id" class="text-[11px] group transition-colors hover:bg-rose-50/30 border-b border-[hsl(var(--border))] last:border-0">
+                            <template v-if="employees.length > 0">
+                                <tr v-for="(emp, i) in employees" :key="emp.id" class="text-[11px] group transition-colors hover:bg-rose-50/30 border-b border-[hsl(var(--border))] last:border-0">
                                     <td class="font-bold text-[hsl(var(--muted-foreground))] px-6 py-4">{{ i + 1 }}</td>
                                     <td class="font-bold px-6 py-4">{{ emp.name }} {{ emp.last_name }}</td>
                                     <td class="px-6 py-4">{{ emp.role }}</td>
