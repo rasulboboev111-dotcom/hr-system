@@ -31,7 +31,8 @@ export const translations = {
       pending: "Дар интизорӣ",
       vacant: "Холӣ",
       filled: "Пур шуд",
-      onHold: "Боздошт"
+      onHold: "Боздошт",
+      importSuccess: "Импорт бо муваффақият анҷом шуд"
     },
     menu: {
       dashboard: "Панели идоракунӣ",
@@ -75,6 +76,25 @@ export const translations = {
       roleName: "Номи нақш",
       roleKey: "Калиди нақш (ID)"
     },
+    departments: {
+      title: "Шуъбаҳо",
+      subtitle: "Сохтори ташкилотии корхона",
+      addDepartment: "Иловаи шуъба",
+      label: "Департамент",
+      employees: "Кормандон",
+      vacancies: "Вакансияҳо",
+      editTitle: "Таҳрири шуъба",
+      newTitle: "Шуъбаи нав созед",
+      editSubtitle: "Номи шуъбаро иваз кунед",
+      newSubtitle: "Номи шуъбаи навро ворид кунед",
+      nameLabel: "Номи шуъба",
+      namePlaceholder: "Масалан: Legal",
+      confirmDelete: "Шуъбаро нест кардан мехоҳед?",
+      totalDepts: "Шуъбаҳои умумӣ",
+      totalEmployees: "Кормандони умумӣ",
+      totalVacancies: "Вакансияҳои умумӣ",
+      avgFillRate: "Миёнаи пуркунӣ"
+    },
     positions: {
       title: "Мансабҳо",
       subtitle: "Идоракунии воҳидҳои корӣ ва вакансияҳо",
@@ -87,7 +107,8 @@ export const translations = {
       },
       table: {
         id: "Рақами мансаб",
-        title: "Номи мансаб"
+        title: "Номи мансаб",
+        skills: "Малакаҳо"
       }
     },
     recruitment: {
@@ -121,7 +142,14 @@ export const translations = {
       shiftTime: "Вақти баст",
       dayShift: "Басти рӯзона",
       nightShift: "Басти шабона",
-      weekend: "Истироҳат"
+      weekend: "Истироҳат",
+      generalSchedule: "Реҷаи корияи умумӣ",
+      weekdays: "Аз Душанбе то Ҷумъа",
+      weekendTitle: "Рӯзҳои истироҳат",
+      weekendDays: "Шанбе ва Якшанбе",
+      timeInput: "Вақт (мас. 08:00 - 17:00)",
+      noShifts: "Вақти кории таъиншуда вуҷуд надорад.",
+      addWorkingTime: "Иловаи вақти корӣ"
     },
     timesheet: {
       title: "Табели давомот",
@@ -130,7 +158,9 @@ export const translations = {
       present: "Ҳозир",
       late: "Дермонда",
       absent: "Ғоиб",
-      totalHours: "Ҷамъ (соат)"
+      totalHours: "Ҳамагӣ (соат)",
+      addEntry: "Иловаи сабти давомот",
+      dayOfMonth: "Рӯзи моҳ"
     },
     payroll: {
       title: "Музди меҳнат",
@@ -213,7 +243,8 @@ export const translations = {
       pending: "В ожидании",
       vacant: "Вакансия",
       filled: "Занято",
-      onHold: "Приостановлено"
+      onHold: "Приостановлено",
+      importSuccess: "Импорт успешно завершен"
     },
     menu: {
       dashboard: "Рабочий стол",
@@ -257,6 +288,25 @@ export const translations = {
       roleName: "Название роли",
       roleKey: "Ключ роли (ID)"
     },
+    departments: {
+      title: "Отделы",
+      subtitle: "Организационная структура компании",
+      addDepartment: "Добавить отдел",
+      label: "Департамент",
+      employees: "Сотрудники",
+      vacancies: "Вакансии",
+      editTitle: "Редактирование отдела",
+      newTitle: "Создать новый отдел",
+      editSubtitle: "Измените название отдела",
+      newSubtitle: "Введите название нового отдела",
+      nameLabel: "Название отдела",
+      namePlaceholder: "Например: Legal",
+      confirmDelete: "Удалить отдел?",
+      totalDepts: "Всего отделов",
+      totalEmployees: "Всего сотрудников",
+      totalVacancies: "Всего вакансий",
+      avgFillRate: "Ср. заполненность"
+    },
     positions: {
       title: "Должности",
       subtitle: "Управление штатными единицами и вакансиями",
@@ -269,7 +319,8 @@ export const translations = {
       },
       table: {
         id: "ID Должности",
-        title: "Название должности"
+        title: "Название должности",
+        skills: "Навыки"
       }
     },
     recruitment: {
@@ -303,12 +354,21 @@ export const translations = {
       shiftTime: "Время смены",
       dayShift: "Дневная смена",
       nightShift: "Ночная смена",
-      weekend: "Выходной"
+      weekend: "Выходной",
+      generalSchedule: "Общий график работы",
+      weekdays: "С Понедельника по Пятницу",
+      weekendTitle: "Дни отдыха",
+      weekendDays: "Суббота и Воскресенье",
+      timeInput: "Время (напр. 08:00 - 17:00)",
+      noShifts: "Рабочее время не установлено.",
+      addWorkingTime: "Добавить рабочее время"
     },
     timesheet: {
       title: "Табель учета",
       subtitle: "Учет рабочего времени",
       confirm: "Подтвердить табель",
+      addEntry: "Добавить запись",
+      dayOfMonth: "День месяца",
       present: "Присутствовал",
       late: "Опоздал",
       absent: "Отсутствовал",
@@ -395,7 +455,8 @@ export const translations = {
       pending: "Pending",
       vacant: "Vacant",
       filled: "Filled",
-      onHold: "On Hold"
+      onHold: "On Hold",
+      importSuccess: "Import completed successfully"
     },
     menu: {
       dashboard: "Dashboard",
@@ -439,6 +500,25 @@ export const translations = {
       roleName: "Role Name",
       roleKey: "Role Key (ID)"
     },
+    departments: {
+      title: "Departments",
+      subtitle: "Company organizational structure",
+      addDepartment: "Add Department",
+      label: "Department",
+      employees: "Employees",
+      vacancies: "Vacancies",
+      editTitle: "Edit Department",
+      newTitle: "Create New Department",
+      editSubtitle: "Change department name",
+      newSubtitle: "Enter new department name",
+      nameLabel: "Department Name",
+      namePlaceholder: "e.g. Legal",
+      confirmDelete: "Delete this department?",
+      totalDepts: "Total Departments",
+      totalEmployees: "Total Employees",
+      totalVacancies: "Total Vacancies",
+      avgFillRate: "Avg. Fill Rate"
+    },
     positions: {
       title: "Positions",
       subtitle: "Management of headcounts and vacancies",
@@ -451,7 +531,8 @@ export const translations = {
       },
       table: {
         id: "Position ID",
-        title: "Position Title"
+        title: "Position Title",
+        skills: "Skills"
       }
     },
     recruitment: {
@@ -485,12 +566,21 @@ export const translations = {
       shiftTime: "Shift Time",
       dayShift: "Day Shift",
       nightShift: "Night Shift",
-      weekend: "Weekend"
+      weekend: "Weekend",
+      generalSchedule: "General Working Schedule",
+      weekdays: "Monday to Friday",
+      weekendTitle: "Weekend",
+      weekendDays: "Saturday and Sunday",
+      timeInput: "Time (e.g. 08:00 - 17:00)",
+      noShifts: "No assigned working time.",
+      addWorkingTime: "Add working time"
     },
     timesheet: {
       title: "Timesheet",
       subtitle: "Work time tracking",
       confirm: "Confirm Timesheet",
+      addEntry: "Add Attendance",
+      dayOfMonth: "Day of month",
       present: "Present",
       late: "Late",
       absent: "Absent",

@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { translations } from './translations';
 
 const language = ref(localStorage.getItem('i18n_lang') || 'tj');

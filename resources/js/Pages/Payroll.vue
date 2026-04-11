@@ -1,8 +1,8 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { 
   Wallet, Clock, CheckCircle2, Download, Filter, 
   Search, Plus, MoreVertical, Edit2, Trash2, FileText,
@@ -18,14 +18,13 @@ const props = defineProps({
 
 const { t, language } = useI18n();
 
-import { useForm } from '@inertiajs/vue3';
+
 
 const payrollData = computed(() => {
   return props.employees.filter(e => e.status !== 'Retired').map(e => {
     const record = props.payroll_records.find(r => r.employee_id === e.id);
     return {
       ...e,
-      bonus: record ? record.bonus : 500,
       salary: record ? record.salary : 8500,
       adjustment: 0
     };
@@ -36,22 +35,30 @@ const searchTerm = ref('');
 const isAddOpen = ref(false);
 
 const form = useForm({
-  employee_id: '',
+  employee_name: '',
+  role: '',
+  department: '',
   salary: '',
-  bonus: '500',
   month_year: new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0')
+});
+
+const uniqueRoles = computed(() => {
+    return [...new Set(props.employees.map(e => e.role).filter(Boolean))];
+});
+const uniqueDepartments = computed(() => {
+    return [...new Set(props.employees.map(e => e.department).filter(Boolean))];
 });
 
 const filteredPayroll = computed(() => {
   return payrollData.value.filter(p => {
     const term = searchTerm.value.toLowerCase();
-    const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+    const fullName = `${p.name} ${p.last_name}`.toLowerCase();
     return fullName.includes(term) || (p.department && p.department.toLowerCase().includes(term));
   });
 });
 
 const totalPayroll = computed(() => 
-  sortedPayroll.value.reduce((acc, e) => acc + (parseFloat(e.salary) || 0) + (parseFloat(e.bonus) || 0), 0)
+  sortedPayroll.value.reduce((acc, e) => acc + (parseFloat(e.salary) || 0), 0)
 );
 
 const sortKey = ref(null);
@@ -74,12 +81,9 @@ const sortedPayroll = computed(() => {
     if (sortKey.value && sortDir.value) {
         items.sort((a, b) => {
             let aVal, bVal;
-            if (sortKey.value === 'total') {
-                aVal = (parseFloat(a.salary) || 0) + (parseFloat(a.bonus) || 0);
-                bVal = (parseFloat(b.salary) || 0) + (parseFloat(b.bonus) || 0);
-            } else if (sortKey.value === 'name') {
-                aVal = `${a.first_name} ${a.last_name}`.toLowerCase();
-                bVal = `${b.first_name} ${b.last_name}`.toLowerCase();
+            if (sortKey.value === 'name') {
+                aVal = `${a.name} ${a.last_name}`.toLowerCase();
+                bVal = `${b.name} ${b.last_name}`.toLowerCase();
             } else {
                 aVal = a[sortKey.value] ?? '';
                 bVal = b[sortKey.value] ?? '';
@@ -98,7 +102,7 @@ const sortedPayroll = computed(() => {
 });
 
 const handleAddPayroll = () => {
-    if (!form.employee_id || !form.salary) return;
+    if (!form.employee_name || !form.salary) return;
 
     form.post('/payroll/bonus', {
         preserveScroll: true,
@@ -111,6 +115,38 @@ const handleAddPayroll = () => {
 
 const handleExport = () => {
     window.location.href = '/payroll/export';
+};
+
+const activeDropdown = ref(null);
+const toggleDropdown = (id, event) => {
+    event.stopPropagation();
+    activeDropdown.value = activeDropdown.value === id ? null : id;
+};
+
+const closeDropdown = (e) => {
+    if (!e.target.closest('.dropdown-container')) {
+        activeDropdown.value = null;
+    }
+};
+
+onMounted(() => document.addEventListener('click', closeDropdown));
+onUnmounted(() => document.removeEventListener('click', closeDropdown));
+
+const handleEdit = (emp) => {
+    activeDropdown.value = null;
+    form.employee_name = `${emp.name} ${emp.last_name}`.trim();
+    form.role = emp.role;
+    form.department = emp.department;
+    form.salary = emp.salary;
+    isAddOpen.value = true;
+};
+
+const handleDelete = (emp) => {
+    // Delete logic (placeholder)
+    activeDropdown.value = null;
+    if(confirm('Are you sure you want to delete this record?')) {
+        // Implement delete
+    }
 };
 </script>
 
@@ -154,7 +190,7 @@ const handleExport = () => {
                         <Clock class="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
                     </div>
                     <div class="p-6 pt-0">
-                        <div class="text-2xl font-bold">05.04.2024</div>
+                        <div class="text-2xl font-bold">{{ new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }}</div>
                         <p class="text-[10px] text-[hsl(var(--muted-foreground))] font-bold mt-1 uppercase tracking-tighter">Оғози давраи навбатӣ</p>
                     </div>
                 </div>
@@ -166,7 +202,7 @@ const handleExport = () => {
                     </div>
                     <div class="p-6 pt-0">
                         <div class="text-2xl font-bold text-emerald-600">{{ t('common.success').toUpperCase() }}</div>
-                        <p class="text-[10px] text-[hsl(var(--muted-foreground))] font-bold mt-1 uppercase tracking-tighter">Тасдиқшуда 2 соат пеш</p>
+                        <p class="text-[10px] text-[hsl(var(--muted-foreground))] font-bold mt-1 uppercase tracking-tighter">Тасдиқшуда имрӯз</p>
                     </div>
                 </div>
             </div>
@@ -176,11 +212,6 @@ const handleExport = () => {
                     <div class="relative flex-1 max-w-sm w-full">
                         <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                         <input v-model="searchTerm" :placeholder="t('common.search')" class="pl-9 h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))]/20 focus:outline-none" />
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button class="h-9 px-3 border border-[hsl(var(--border))] rounded-lg inline-flex items-center gap-2 text-[10px] font-bold uppercase hover:bg-[hsl(var(--muted))]">
-                            <Filter class="h-4 w-4" /> {{ t('common.filter') }}
-                        </button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -209,20 +240,6 @@ const handleExport = () => {
                                         <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
                                     </div>
                                 </th>
-                                <th @click="handleSort('bonus')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'bonus' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
-                                    <div class="flex items-center">{{ t('payroll.bonus') }}
-                                        <ChevronUp v-if="sortKey === 'bonus' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                                        <ChevronDown v-else-if="sortKey === 'bonus' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
-                                    </div>
-                                </th>
-                                <th @click="handleSort('total')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'total' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
-                                    <div class="flex items-center">{{ t('payroll.total') }}
-                                        <ChevronUp v-if="sortKey === 'total' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                                        <ChevronDown v-else-if="sortKey === 'total' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
-                                    </div>
-                                </th>
                                 <th class="px-6 py-4">{{ t('common.status') }}</th>
                                 <th class="text-right px-6 py-4">{{ t('common.action') }}</th>
                             </tr>
@@ -233,24 +250,30 @@ const handleExport = () => {
                                     <td class="font-bold text-[hsl(var(--primary))] px-6 py-4">{{ i + 1 }}</td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-col">
-                                            <span class="font-bold text-[hsl(var(--foreground))]/80">{{ emp.first_name }} {{ emp.last_name }}</span>
-                                            <span class="text-[9px] text-[hsl(var(--muted-foreground))] uppercase">{{ emp.position }}</span>
+                                            <span class="font-bold text-[hsl(var(--foreground))]/80">{{ emp.name }} {{ emp.last_name }}</span>
+                                            <span class="text-[9px] text-[hsl(var(--muted-foreground))] uppercase">{{ emp.role }}</span>
                                         </div>
                                     </td>
                                     <td class="text-[hsl(var(--muted-foreground))] px-6 py-4 font-medium uppercase">{{ emp.department }}</td>
                                     <td class="px-6 py-4 font-mono font-bold">{{ (emp.salary || 0).toLocaleString() }}</td>
-                                    <td class="px-6 py-4 font-mono text-emerald-600 font-bold">+{{ (emp.bonus || 0).toLocaleString() }}</td>
-                                    <td class="font-bold text-[hsl(var(--primary))] px-6 py-4 font-mono">
-                                        {{ ((parseFloat(emp.salary) || 0) + (parseFloat(emp.bonus) || 0)).toLocaleString() }}
-                                    </td>
                                     <td class="px-6 py-4">
                                         <span class="inline-block text-[8px] font-bold bg-emerald-50 text-emerald-700 rounded-md px-2 py-0.5 uppercase tracking-tighter">
                                             {{ t('payroll.paid') }}
                                         </span>
                                     </td>
-                                    <td class="text-right px-6 py-4">
-                                        <div class="inline-flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button class="h-7 w-7 inline-flex items-center justify-center rounded hover:bg-[hsl(var(--muted))] object-center"><MoreVertical class="h-4 w-4 text-[hsl(var(--muted-foreground))]" /></button>
+                                    <td class="text-right px-6 py-4 relative">
+                                        <div class="inline-flex justify-end relative dropdown-container">
+                                            <button @click="(e) => toggleDropdown(emp.id, e)" class="h-7 w-7 inline-flex items-center justify-center rounded hover:bg-[hsl(var(--muted))] object-center transition-colors">
+                                                <MoreVertical class="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                                            </button>
+                                            <div v-if="activeDropdown === emp.id" class="absolute right-0 top-8 w-36 bg-white border border-[hsl(var(--border))] rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                                                <button @click="handleEdit(emp)" class="w-full text-left px-4 py-2.5 hover:bg-[hsl(var(--muted))]/50 text-[11px] font-bold text-[hsl(var(--foreground))]/80 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                    <Edit2 class="h-3.5 w-3.5 text-[hsl(var(--primary))]" /> {{ t('common.edit') || 'Edit' }}
+                                                </button>
+                                                <button @click="handleDelete(emp)" class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-[11px] font-bold text-red-600 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                    <Trash2 class="h-3.5 w-3.5" /> {{ t('common.delete') || 'Delete' }}
+                                                </button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -279,24 +302,33 @@ const handleExport = () => {
                 <div class="p-6 grid gap-4">
                     <div class="space-y-1.5">
                         <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.employees') }}</label>
-                        <select v-model="form.employee_id" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
-                            <option value="">Интихоби корманд</option>
-                            <option v-for="emp in payrollData" :key="emp.id" :value="emp.id">{{ emp.first_name }} {{ emp.last_name }}</option>
-                        </select>
+                        <input v-model="form.employee_name" list="payroll-emp-list" placeholder="Ному насаби корманд" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <datalist id="payroll-emp-list">
+                            <option v-for="emp in payrollData" :key="emp.id" :value="emp.name + ' ' + emp.last_name"></option>
+                        </datalist>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('payroll.salary') }}</label>
-                            <input v-model="form.salary" type="number" placeholder="мас. 15000" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('payroll.bonus') }}</label>
-                            <input v-model="form.bonus" type="number" placeholder="мас. 500" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
-                        </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Мансаб</label>
+                        <input v-model="form.role" list="payroll-role-list" placeholder="Мансабро интихоб кунед ё ворид кунед" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <datalist id="payroll-role-list">
+                            <option v-for="role in uniqueRoles" :key="role" :value="role"></option>
+                        </datalist>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Шуъба</label>
+                        <input v-model="form.department" list="payroll-dept-list" placeholder="Шуъбаро интихоб кунед ё ворид кунед" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <datalist id="payroll-dept-list">
+                            <option v-for="dept in uniqueDepartments" :key="dept" :value="dept"></option>
+                        </datalist>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('payroll.salary') }}</label>
+                        <input v-model="form.salary" type="number" placeholder="мас. 15000" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
                     </div>
                 </div>
-                <div class="px-6 pb-6 pt-2">
-                    <button @click="handleAddPayroll" class="w-full h-10 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg text-xs font-bold uppercase">{{ t('common.save') }}</button>
+                <div class="px-6 pb-6 pt-2 flex items-center gap-3">
+                    <button type="button" @click="isAddOpen = false" class="w-1/2 h-10 hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">{{ t('common.cancel') }}</button>
+                    <button @click="handleAddPayroll" class="w-1/2 h-10 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg text-xs font-bold uppercase">{{ t('common.save') }}</button>
                 </div>
             </div>
         </div>

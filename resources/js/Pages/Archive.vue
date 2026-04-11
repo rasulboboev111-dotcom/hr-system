@@ -1,12 +1,17 @@
 <script setup>
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
-import { History, Search, Calendar, MoreVertical, Plus, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-vue-next';
-import { ref, watch, computed } from 'vue';
+import { History, Search, Calendar, MoreVertical, Plus, ArrowUpDown, ChevronUp, ChevronDown, Trash2, Edit2 } from 'lucide-vue-next';
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from '@/lib/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     employees: { type: Array, default: () => [] },
-    filters: Object
+    filters: Object,
+    departments: { type: Array, default: () => [] },
+    positions: { type: Array, default: () => [] }
 });
 
 const searchTerm = ref(props.filters?.search || '');
@@ -16,6 +21,9 @@ watch(searchTerm, (value) => {
 });
 
 const isModalOpen = ref(false);
+const isEditing = ref(false);
+const editingId = ref(null);
+
 const form = useForm({
     name: '',
     last_name: '',
@@ -25,12 +33,57 @@ const form = useForm({
 });
 
 const submitForm = () => {
-    form.post('/archive', {
-        onSuccess: () => {
-            isModalOpen.value = false;
-            form.reset();
-        }
-    });
+    if (isEditing.value) {
+        form.put(`/archive/${editingId.value}`, {
+            onSuccess: () => {
+                isModalOpen.value = false;
+                form.reset();
+                isEditing.value = false;
+                editingId.value = null;
+            }
+        });
+    } else {
+        form.post('/archive', {
+            onSuccess: () => {
+                isModalOpen.value = false;
+                form.reset();
+            }
+        });
+    }
+};
+
+const activeDropdown = ref(null);
+const toggleDropdown = (id, event) => {
+    event.stopPropagation();
+    activeDropdown.value = activeDropdown.value === id ? null : id;
+};
+
+const closeDropdown = (e) => {
+    if (!e.target.closest('.dropdown-container')) {
+        activeDropdown.value = null;
+    }
+};
+
+onMounted(() => document.addEventListener('click', closeDropdown));
+onUnmounted(() => document.removeEventListener('click', closeDropdown));
+
+const handleEdit = (emp) => {
+    isEditing.value = true;
+    editingId.value = emp.id;
+    form.name = emp.name;
+    form.last_name = emp.last_name;
+    form.email = emp.email;
+    form.role = emp.role;
+    form.department = emp.department;
+    isModalOpen.value = true;
+    activeDropdown.value = null;
+};
+
+const handleDelete = (emp) => {
+    if(confirm('Оё мутмаин ҳастед? Ин амалро баргардонидан ғайриимкон аст.')) {
+        router.delete(`/archive/${emp.id}`, { preserveScroll: true });
+        activeDropdown.value = null;
+    }
 };
 
 const sortKey = ref(null);
@@ -129,7 +182,7 @@ const sortedEmployees = computed(() => {
                                 <th class="text-right px-6 py-4">Амал</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="pb-24 block min-w-full table-row-group">
                             <template v-if="sortedEmployees.length > 0">
                                 <tr v-for="(emp, i) in sortedEmployees" :key="emp.id" class="text-[11px] group transition-colors hover:bg-rose-50/30 border-b border-[hsl(var(--border))] last:border-0">
                                     <td class="font-bold text-[hsl(var(--muted-foreground))] px-6 py-4">{{ i + 1 }}</td>
@@ -143,8 +196,20 @@ const sortedEmployees = computed(() => {
                                         </div>
                                     </td>
                                     <td class="italic text-[hsl(var(--muted-foreground))] px-6 py-4">Ихтисор шуд</td>
-                                    <td class="text-right px-6 py-4">
-                                        <button class="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-[hsl(var(--muted))]"><MoreVertical class="h-4 w-4" /></button>
+                                    <td class="text-right px-6 py-4 relative">
+                                        <div class="inline-flex justify-end relative dropdown-container">
+                                            <button @click="(e) => toggleDropdown(emp.id, e)" class="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-[hsl(var(--muted))]">
+                                                <MoreVertical class="h-4 w-4" />
+                                            </button>
+                                            <div v-if="activeDropdown === emp.id" class="absolute right-0 top-8 w-44 bg-white border border-[hsl(var(--border))] rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                                                <button @click="handleEdit(emp)" class="w-full text-left px-4 py-2 hover:bg-[hsl(var(--muted))]/50 text-xs font-bold text-[hsl(var(--foreground))]/80 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                    <Edit2 class="h-3.5 w-3.5 text-[hsl(var(--primary))]" /> Таҳрир
+                                                </button>
+                                                <button @click="handleDelete(emp)" class="w-full text-left px-4 py-2 hover:bg-red-50 text-xs font-bold text-red-600 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                    <Trash2 class="h-3.5 w-3.5" /> Пурра нест кардан
+                                                </button>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             </template>
@@ -187,21 +252,24 @@ const sortedEmployees = computed(() => {
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Мансаб</label>
-                        <input v-model="form.role" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
+                        <input v-model="form.role" list="archive-roles-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <datalist id="archive-roles-list">
+                            <option v-for="pos in positions" :key="pos.id" :value="pos.title"></option>
+                        </datalist>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Шуъба</label>
-                        <select v-model="form.department" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
-                            <option>Engineering</option>
-                            <option>Human Resources</option>
-                            <option>Design</option>
-                            <option>Management</option>
-                        </select>
+                        <input v-model="form.department" list="archive-departments-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <datalist id="archive-departments-list">
+                            <option v-for="dept in departments" :key="dept.id" :value="dept.name"></option>
+                        </datalist>
                     </div>
 
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-[hsl(var(--border))] mt-6">
-                        <button type="button" @click="isModalOpen = false" class="px-4 py-2 rounded-lg text-sm font-bold text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">Бекор кардан</button>
-                        <button type="submit" :disabled="form.processing" class="px-4 py-2 rounded-lg text-sm font-bold bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary))]/90 disabled:opacity-50">Сабт ба Байгонӣ</button>
+                        <button type="button" @click="() => { isModalOpen = false; isEditing = false; editingId = null; form.reset(); }" class="px-4 py-2 text-xs font-bold text-[hsl(var(--muted-foreground))] tracking-widest uppercase rounded-xl hover:bg-[hsl(var(--muted))] transition-colors">{{ t('common.cancel') }}</button>
+                        <button type="submit" :disabled="form.processing" class="px-4 py-2 rounded-lg text-sm font-bold bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary))]/90 disabled:opacity-50">
+                            {{ isEditing ? 'Таҳрир кардан' : 'Сабт ба Байгонӣ' }}
+                        </button>
                     </div>
                 </form>
             </div>

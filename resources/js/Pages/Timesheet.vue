@@ -1,27 +1,43 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { ref, onMounted, computed } from 'vue';
 import { 
     FileSpreadsheet, Search, CheckCircle2, Clock, 
-    XCircle, AlertCircle, ShieldCheck, Plus, UserCircle 
+    XCircle, AlertCircle, ShieldCheck, Plus, UserCircle, Upload 
 } from 'lucide-vue-next';
 
 const props = defineProps({
     employees: { type: Array, default: () => [] },
-    attendances: { type: Array, default: () => [] }
+    attendances: { type: Array, default: () => [] },
+    departments: { type: Array, default: () => [] }
 });
 
 const { t } = useI18n();
 
-import { useForm, router } from '@inertiajs/vue3';
+
 
 const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
 const isAddOpen = ref(false);
-const form = useForm({ employee_id: '', day: '1', status: 'P', date_key: '' });
+const form = useForm({ employee_name: '', day: '1', status: 'P', date_key: '', department: '' });
+const selectedDepartment = ref('');
 
-const activeEmployees = computed(() => props.employees.filter(e => e.status !== 'Retired'));
+const activeEmployees = computed(() => {
+    let list = props.employees.filter(e => e.status !== 'Retired');
+    if (selectedDepartment.value) {
+        list = list.filter(e => e.department === selectedDepartment.value);
+    }
+    return list;
+});
+
+const modalActiveEmployees = computed(() => {
+    let list = props.employees.filter(e => e.status !== 'Retired');
+    if (form.department) {
+        list = list.filter(e => e.department === form.department);
+    }
+    return list;
+});
 
 const attendanceData = computed(() => {
     const data = {};
@@ -36,8 +52,35 @@ const attendanceData = computed(() => {
     return data;
 });
 
+const stats = computed(() => {
+    let present = 0;
+    let late = 0;
+    let absent = 0;
+    let totalRecords = 0;
+
+    activeEmployees.value.forEach(emp => {
+        const data = attendanceData.value[emp.id] || {};
+        Object.values(data).forEach(status => {
+            if (status === 'P') present++;
+            if (status === 'L') late++;
+            if (status === 'A') absent++;
+            totalRecords++;
+        });
+    });
+
+    const presentRate = totalRecords > 0 ? Math.round((present / totalRecords) * 100) : 0;
+    const avgHours = activeEmployees.value.length > 0 ? ((present * 8) / activeEmployees.value.length).toFixed(1) : 0;
+
+    return {
+        presentRate: presentRate + '%',
+        late,
+        absent,
+        averageHours: avgHours
+    };
+});
+
 const handleAddEntry = () => {
-    if (!form.employee_id) return;
+    if (!form.employee_name) return;
     form.date_key = form.day;
     form.post('/timesheet', {
         preserveScroll: true,
@@ -55,6 +98,32 @@ const getTotalHours = (empId) => {
 
 const handleConfirmTimesheet = () => {
     alert("Давомот тасдиқ ва қулф шуд.");
+};
+
+const handleExport = () => {
+    window.location.href = '/timesheet/export';
+};
+
+const fileInput = ref(null);
+
+const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+        router.post('/timesheet/import', formData, {
+        preserveScroll: true,
+        onError: (err) => {
+            alert('Хатогӣ ҳангоми импорт: ' + Object.values(err).join('\n'));
+        },
+        onSuccess: () => {
+            alert(t('common.importSuccess') || 'Импорт бо муваффақият анҷом шуд');
+            // reset input
+            if (fileInput.value) fileInput.value.value = '';
+        }
+    });
 };
 
 const toggleAttendance = (empId, day) => {
@@ -85,12 +154,20 @@ const toggleAttendance = (empId, day) => {
                     <h1 class="text-2xl font-bold tracking-tight">{{ t('timesheet.title') }}</h1>
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('timesheet.subtitle') }}</p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 items-center">
+                    <select v-model="selectedDepartment" class="min-w-[150px] h-9 px-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-[10px] font-bold uppercase focus:outline-none text-[hsl(var(--muted-foreground))]">
+                        <option value="">{{ t('common.all') || 'Все отделы' }}</option>
+                        <option v-for="dept in departments" :key="dept.id" :value="dept.name">{{ dept.name }}</option>
+                    </select>
                     <button @click="isAddOpen = true" class="h-9 px-3 inline-flex items-center gap-2 border border-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/5 uppercase font-bold text-[10px] rounded-lg">
                         <Plus class="h-4 w-4" /> {{ t('common.add') }}
                     </button>
-                    <button class="h-9 px-3 inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 uppercase font-bold text-[10px] rounded-lg">
-                        <FileSpreadsheet class="h-4 w-4" /> EXCEL
+                    <button @click="fileInput.click()" class="h-9 px-3 inline-flex items-center gap-2 text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 uppercase font-bold text-[10px] rounded-lg">
+                        <Upload class="h-4 w-4" /> {{ t('common.import') }}
+                    </button>
+                    <input type="file" ref="fileInput" class="hidden" accept=".csv" @change="handleImport" />
+                    <button @click="handleExport" class="h-9 px-3 inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 uppercase font-bold text-[10px] rounded-lg">
+                        <FileSpreadsheet class="h-4 w-4" /> {{ t('common.export') }}
                     </button>
                     <button @click="handleConfirmTimesheet" class="h-9 px-3 inline-flex items-center gap-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm uppercase font-bold text-[10px] rounded-lg">
                         <ShieldCheck class="h-4 w-4" /> {{ t('timesheet.confirm') }}
@@ -105,7 +182,7 @@ const toggleAttendance = (empId, day) => {
                     </div>
                     <div>
                         <p class="text-[9px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-widest">{{ t('timesheet.present') }}</p>
-                        <p class="text-xl font-bold">95%</p>
+                        <p class="text-xl font-bold">{{ stats.presentRate }}</p>
                     </div>
                 </div>
                 <div class="p-4 border border-[hsl(var(--border))] shadow-sm flex items-center gap-4 group hover:border-[hsl(var(--primary))]/50 transition-all rounded-xl bg-[hsl(var(--card))]">
@@ -114,7 +191,7 @@ const toggleAttendance = (empId, day) => {
                     </div>
                     <div>
                         <p class="text-[9px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-widest">{{ t('timesheet.late') }}</p>
-                        <p class="text-xl font-bold">4</p>
+                        <p class="text-xl font-bold">{{ stats.late }}</p>
                     </div>
                 </div>
                 <div class="p-4 border border-[hsl(var(--border))] shadow-sm flex items-center gap-4 group hover:border-[hsl(var(--primary))]/50 transition-all rounded-xl bg-[hsl(var(--card))]">
@@ -123,7 +200,7 @@ const toggleAttendance = (empId, day) => {
                     </div>
                     <div>
                         <p class="text-[9px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-widest">{{ t('timesheet.absent') }}</p>
-                        <p class="text-xl font-bold">1</p>
+                        <p class="text-xl font-bold">{{ stats.absent }}</p>
                     </div>
                 </div>
                 <div class="p-4 border border-[hsl(var(--border))] shadow-sm flex items-center gap-4 group hover:border-[hsl(var(--primary))]/50 transition-all rounded-xl bg-[hsl(var(--card))]">
@@ -132,7 +209,7 @@ const toggleAttendance = (empId, day) => {
                     </div>
                     <div>
                         <p class="text-[9px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-widest">Миёнаи соатҳо</p>
-                        <p class="text-xl font-bold">8.2</p>
+                        <p class="text-xl font-bold">{{ stats.averageHours }}</p>
                     </div>
                 </div>
             </div>
@@ -203,28 +280,33 @@ const toggleAttendance = (empId, day) => {
                 <div class="p-6 border-b border-[hsl(var(--border))]">
                     <h2 class="text-xl font-bold flex items-center gap-2">
                         <UserCircle class="h-6 w-6 text-[hsl(var(--primary))]" />
-                        Иловаи сабти давомот
+                        {{ t('timesheet.addEntry') || 'Иловаи сабти давомот' }}
                     </h2>
                 </div>
                 <div class="p-6 grid gap-4">
                     <div class="space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.employees') }}</label>
-                        <select v-model="form.employee_id" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
-                            <option value="">Интихоби корманд</option>
-                            <option v-for="emp in activeEmployees" :key="emp.id" :value="emp.id">
-                                {{ emp.first_name }} {{ emp.last_name }}
-                            </option>
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.departments') || 'Шуъба' }}</label>
+                        <select v-model="form.department" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none text-[hsl(var(--muted-foreground))]">
+                            <option value="">{{ t('common.all') || 'Ҳама' }}</option>
+                            <option v-for="dept in departments" :key="dept.id" :value="dept.name">{{ dept.name }}</option>
                         </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.employees') }}</label>
+                        <input v-model="form.employee_name" list="timesheet-employee-list" placeholder="Интихоби корманд ё ворид кардани нав" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none" autocomplete="off" />
+                        <datalist id="timesheet-employee-list">
+                            <option v-for="emp in modalActiveEmployees" :key="emp.id" :value="emp.name + ' ' + (emp.last_name || '')"></option>
+                        </datalist>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Рӯзи моҳ</label>
+                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('timesheet.dayOfMonth') || 'Рӯзи моҳ' }}</label>
                             <select v-model="form.day" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
                                 <option v-for="d in daysInMonth" :key="d" :value="String(d)">{{ d }}</option>
                             </select>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Статус</label>
+                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('common.status') || 'Статус' }}</label>
                             <select v-model="form.status" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
                                 <option value="P">P - Ҳозир</option>
                                 <option value="L">L - Дермонда</option>
@@ -233,8 +315,9 @@ const toggleAttendance = (empId, day) => {
                         </div>
                     </div>
                 </div>
-                <div class="px-6 pb-6 pt-2">
-                    <button @click="handleAddEntry" class="w-full h-11 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-xl text-xs font-bold uppercase shadow-sm">{{ t('common.save') }}</button>
+                <div class="px-6 pb-6 pt-2 flex items-center gap-3">
+                    <button type="button" @click="isAddOpen = false" class="w-1/2 h-11 hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] rounded-xl text-xs font-bold uppercase tracking-widest transition-colors">{{ t('common.cancel') }}</button>
+                    <button @click="handleAddEntry" class="w-1/2 h-11 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-xl text-xs font-bold uppercase shadow-sm">{{ t('common.save') }}</button>
                 </div>
             </div>
         </div>

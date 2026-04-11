@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { computed, ref } from 'vue';
@@ -14,7 +14,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 
-import { useForm, router } from '@inertiajs/vue3';
+
 
 const activeTab = ref('users');
 const isUserModalOpen = ref(false);

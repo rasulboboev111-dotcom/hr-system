@@ -11,7 +11,11 @@ import {
 
 const props = defineProps({
     positions: Array,
-    stats: Object
+    stats: Object,
+    departments: {
+        type: Array,
+        default: () => []
+    }
 });
 
 const { t } = useI18n();
@@ -105,6 +109,10 @@ const submitForm = () => {
     }
 };
 
+const handleExport = () => {
+    window.location.href = '/positions/export';
+};
+
 const deletePosition = (id) => {
     if (confirm('Шумо мутмаин ҳастед, ки ин вазифаро нест кардан мехоҳед?')) {
         router.delete(`/positions/${id}`);
@@ -131,7 +139,7 @@ const deletePosition = (id) => {
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
+                    <button @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
                         <Download class="h-4 w-4" /> {{ t('common.export') }}
                     </button>
                     <button @click="openAddModal" class="h-10 px-4 inline-flex items-center justify-center rounded-xl bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] font-bold text-[10px] uppercase tracking-widest hover:bg-[hsl(var(--primary))]/90 shadow-lg shadow-[hsl(var(--primary))]/20 gap-2">
@@ -206,7 +214,7 @@ const deletePosition = (id) => {
                                         <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
                                     </div>
                                 </th>
-                                <th class="px-6 py-4">Малакаҳо</th>
+                                <th class="px-6 py-4">{{ t('positions.table.skills') }}</th>
                                 <th @click="handleSort('status')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'status' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
                                     <div class="flex items-center">{{ t('common.status') }}
                                         <ChevronUp v-if="sortKey === 'status' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
@@ -264,12 +272,10 @@ const deletePosition = (id) => {
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.department') }}</label>
-                        <select v-model="form.department" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
-                            <option>Engineering</option>
-                            <option>Human Resources</option>
-                            <option>Design</option>
-                            <option>Management</option>
-                        </select>
+                        <input v-model="form.department" list="departments-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="Интихоби шӯъба" autocomplete="off" />
+                        <datalist id="departments-list">
+                            <option v-for="dept in departments" :key="dept.id" :value="dept.name"></option>
+                        </datalist>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Статус</label>
@@ -285,7 +291,7 @@ const deletePosition = (id) => {
                     </div>
 
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-[hsl(var(--border))] mt-6">
-                        <button type="button" @click="isModalOpen = false" class="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-[hsl(var(--muted))] transition-colors">Бекор кардан</button>
+                        <button type="button" @click="isModalOpen = false" class="px-4 py-2 text-xs font-bold text-[hsl(var(--muted-foreground))] tracking-widest uppercase rounded-xl hover:bg-[hsl(var(--muted))] transition-colors">{{ t('common.cancel') }}</button>
                         <button type="submit" :disabled="form.processing" class="px-4 py-2 rounded-lg text-sm font-bold bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary))]/90 disabled:opacity-50">
                             {{ t('common.save') }}
                         </button>

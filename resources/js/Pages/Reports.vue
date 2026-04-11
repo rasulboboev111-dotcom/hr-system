@@ -54,9 +54,6 @@ const stats = [
                         <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                         <input placeholder="Номи ҳисоботро ҷустуҷӯ кунед..." class="pl-9 h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent focus:outline-none" />
                     </div>
-                    <button class="h-9 px-3 border border-[hsl(var(--border))] rounded-lg inline-flex items-center gap-2 text-sm">
-                        <Filter class="h-4 w-4" /> Филтр
-                    </button>
                 </div>
                 <div class="divide-y divide-[hsl(var(--border))]">
                     <div v-for="report in reportTypes" :key="report.id" class="p-4 flex items-center justify-between hover:bg-[hsl(var(--muted))]/10 transition-colors group">

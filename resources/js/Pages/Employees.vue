@@ -25,7 +25,7 @@ const handleImport = (e) => {
     router.post('/employees/import', formData, {
         preserveScroll: true,
         onSuccess: () => {
-            alert('Импорт успешно завершен');
+            alert(t('common.importSuccess'));
             fileInputRef.value.value = '';
         }
     });
@@ -33,7 +33,15 @@ const handleImport = (e) => {
 
 const props = defineProps({
     employees: Object,
-    filters: Object
+    filters: Object,
+    departments: {
+        type: Array,
+        default: () => []
+    },
+    positions: {
+        type: Array,
+        default: () => []
+    }
 });
 
 const { t } = useI18n();
@@ -63,8 +71,8 @@ const handleSort = (key) => {
 };
 
 const sortedEmployees = computed(() => {
-    if (!employees.value?.data) return [];
-    let items = [...employees.value.data];
+    if (!props.employees?.data) return [];
+    let items = [...props.employees.data];
     if (sortKey.value && sortDir.value) {
         items.sort((a, b) => {
             let aVal, bVal;
@@ -171,9 +179,6 @@ const deleteEmployee = (id) => {
                         <Search class="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                         <input v-model="searchQuery" :placeholder="t('common.search')" class="pl-10 h-10 w-full text-sm rounded-xl border-none bg-[hsl(var(--muted))]/30 focus:ring-1 focus:ring-[hsl(var(--ring))]" />
                     </div>
-                    <button class="h-10 px-4 inline-flex items-center justify-center gap-2 text-[10px] font-bold uppercase hover:bg-[hsl(var(--muted))] rounded-xl">
-                        <Filter class="h-4 w-4" /> {{ t('common.filter') }}
-                    </button>
                 </div>
                 
                 <div class="overflow-x-auto w-full">
@@ -296,16 +301,17 @@ const deleteEmployee = (id) => {
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.role') }}</label>
-                        <input v-model="form.role" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
+                        <input v-model="form.role" list="roles-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" :placeholder="t('common.role')" autocomplete="off" />
+                        <datalist id="roles-list">
+                            <option v-for="pos in positions" :key="pos.id" :value="pos.title"></option>
+                        </datalist>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.department') }}</label>
-                        <select v-model="form.department" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
-                            <option>Engineering</option>
-                            <option>Human Resources</option>
-                            <option>Design</option>
-                            <option>Management</option>
-                        </select>
+                        <input v-model="form.department" list="departments-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="Интихоби шӯъба" autocomplete="off" />
+                        <datalist id="departments-list">
+                            <option v-for="dept in departments" :key="dept.id" :value="dept.name"></option>
+                        </datalist>
                     </div>
 
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-[hsl(var(--border))] mt-6">

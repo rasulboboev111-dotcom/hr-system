@@ -31,7 +31,9 @@ class EmployeeController extends Controller
 
         return Inertia::render('Employees', [
             'employees' => $employees,
-            'filters' => $request->only('search')
+            'filters' => $request->only('search'),
+            'departments' => \App\Models\Department::all(),
+            'positions' => \App\Models\Position::all()
         ]);
     }
 
@@ -76,11 +78,6 @@ class EmployeeController extends Controller
     public function exportCsv()
     {
         $employees = Employee::all();
-        $csvContent = "ID,Name,Last Name,Email,Role,Department,Status\n";
-
-        foreach ($employees as $emp) {
-            $csvContent .= "{$emp->id},{$emp->name},{$emp->last_name},{$emp->email},{$emp->role},{$emp->department},{$emp->status}\n";
-        }
 
         \App\Models\AuditLog::create([
             'user_id' => 'system',
@@ -91,8 +88,27 @@ class EmployeeController extends Controller
             'timestamp' => now()->toIso8601String()
         ]);
 
-        return \Illuminate\Support\Facades\Response::make($csvContent, 200, [
-            'Content-Type' => 'text/csv',
+        $callback = function() use ($employees) {
+            $file = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['№', 'Ном', 'Насаб', 'Почтаи электронӣ', 'Мансаб', 'Шӯъба', 'Ҳолат'], ';');
+            foreach ($employees as $index => $emp) {
+                fputcsv($file, [
+                    $index + 1,
+                    $emp->name,
+                    $emp->last_name,
+                    $emp->email,
+                    $emp->role,
+                    $emp->department,
+                    $emp->status
+                ], ';');
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="employees_export.csv"',
         ]);
     }

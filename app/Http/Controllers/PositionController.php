@@ -30,7 +30,8 @@ class PositionController extends Controller
 
         return Inertia::render('Positions', [
             'positions' => $positions,
-            'stats' => $stats
+            'stats' => $stats,
+            'departments' => \App\Models\Department::all()
         ]);
     }
 
@@ -108,5 +109,43 @@ class PositionController extends Controller
         ]);
 
         return redirect()->back();
+    }
+
+    public function exportCsv()
+    {
+        $positions = Position::all();
+
+        \App\Models\AuditLog::create([
+            'user_id' => 'system',
+            'user_name' => 'Admin User',
+            'action' => 'Export Positions',
+            'entity_type' => 'Position',
+            'description' => 'Exported positions data to CSV',
+            'timestamp' => now()->toIso8601String()
+        ]);
+
+        $callback = function() use ($positions) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['№', 'Номгӯй', 'Шӯъба', 'Ҳолат', 'Маош', 'Малакаҳо'], ';');
+            foreach ($positions as $index => $pos) {
+                $skills = json_decode($pos->required_skills, true);
+                $skillsStr = is_array($skills) ? implode(', ', $skills) : ($pos->required_skills ?? '');
+                fputcsv($file, [
+                    $index + 1,
+                    $pos->title,
+                    $pos->department,
+                    $pos->status,
+                    $pos->salary,
+                    $skillsStr
+                ], ';');
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="positions_export.csv"',
+        ]);
     }
 }

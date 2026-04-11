@@ -65,9 +65,6 @@ const getActionClass = (action) => {
                         <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                         <input :placeholder="t('common.search')" class="pl-9 h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent focus:outline-none" />
                     </div>
-                    <button class="h-9 px-3 border border-[hsl(var(--border))] rounded-lg inline-flex items-center gap-2 text-[10px] font-bold uppercase hover:bg-[hsl(var(--muted))]">
-                        <Filter class="h-4 w-4" /> {{ t('common.filter') }}
-                    </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-max">

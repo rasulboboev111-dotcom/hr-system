@@ -34,7 +34,15 @@ class DepartmentController extends Controller
         });
 
         return Inertia::render('Departments', [
-            'departments' => $departments
+            'departments' => $departments,
+            'stats' => [
+                'totalDepts' => Department::count(),
+                'totalEmployees' => Employee::count(),
+                'totalVacancies' => Position::where('status', 'vacant')->count(),
+                'avgFillRate' => $departments->count() > 0
+                    ? round($departments->avg('fillRate'))
+                    : 0
+            ]
         ]);
     }
 

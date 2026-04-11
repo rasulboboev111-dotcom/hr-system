@@ -42,11 +42,6 @@ const navigation = computed(() => {
             ],
         },
         {
-            title: t('menu.recruitment'),
-            icon: UserPlus,
-            href: '/recruitment',
-        },
-        {
             title: t('menu.timeTracking'),
             icon: Clock,
             items: [
@@ -61,19 +56,9 @@ const navigation = computed(() => {
             href: '/payroll',
         },
         {
-            title: t('menu.reports'),
-            icon: FileText,
-            href: '/reports',
-        },
-        {
             title: t('menu.analytics'),
             icon: History,
             href: '/analytics',
-        },
-        {
-            title: 'Мушовири AI',
-            icon: Settings,
-            href: '/advisor',
         }
     ];
 

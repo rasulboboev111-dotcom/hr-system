@@ -22,15 +22,37 @@ class PayrollController extends Controller
     public function storeBonus(Request $request)
     {
         $data = $request->validate([
-            'employee_id' => 'required|integer',
+            'employee_name' => 'required|string',
+            'role' => 'nullable|string',
+            'department' => 'nullable|string',
             'month_year' => 'required|string',
-            'bonus' => 'required|numeric',
-            'salary' => 'nullable|numeric'
+            'salary' => 'required|numeric'
         ]);
 
+        $nameParts = explode(' ', $data['employee_name'], 2);
+        $firstName = $nameParts[0];
+        $lastName = $nameParts[1] ?? '';
+
+        $employee = Employee::firstOrCreate(
+            ['name' => $firstName, 'last_name' => $lastName],
+            [
+                'email' => strtolower($firstName) . rand(100,999) . '@example.com',
+                'role' => $data['role'] ?? 'Unknown',
+                'department' => $data['department'] ?? 'Unknown',
+                'status' => 'active'
+            ]
+        );
+
+        if (!empty($data['role']) || !empty($data['department'])) {
+            $employee->update(array_filter([
+                'role' => $data['role'],
+                'department' => $data['department']
+            ]));
+        }
+
         PayrollRecord::updateOrCreate(
-            ['employee_id' => $data['employee_id'], 'month_year' => $data['month_year']],
-            ['bonus' => $data['bonus'], 'salary' => $data['salary'] ?? 8500]
+            ['employee_id' => $employee->id, 'month_year' => $data['month_year']],
+            ['bonus' => 0, 'salary' => $data['salary']]
         );
 
         AuditLog::create([
@@ -48,31 +70,41 @@ class PayrollController extends Controller
     public function exportCsv()
     {
         $employees = Employee::all();
-        $csvContent = "ID,Name,Position,Base Salary,Bonus,Total\n";
-
-        foreach ($employees as $emp) {
-            $base = 8500; // Mock base or from DB relationship
-            $bonus = 0; // Retrieve from PayrollRecord
-            $record = PayrollRecord::where('employee_id', $emp->id)->where('month_year', date('Y-m'))->first();
-            if ($record) {
-                $bonus = $record->bonus;
-            }
-            $total = $base + $bonus;
-            
-            $csvContent .= "{$emp->id},{$emp->first_name} {$emp->last_name},Position,{$base},{$bonus},{$total}\n";
-        }
 
         AuditLog::create([
             'user_id' => 'system',
             'user_name' => 'Admin User',
             'action' => 'Export Payroll',
-            'module' => 'Payroll',
-            'details' => 'Exported payroll data to CSV',
-            'timestamp' => now()->toIso8601String()
+            'entity_type' => 'Payroll',
+            'description' => 'Exported payroll data to CSV'
         ]);
 
-        return Response::make($csvContent, 200, [
-            'Content-Type' => 'text/csv',
+        $callback = function() use ($employees) {
+            $file = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel
+            fwrite($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['№', 'Ном ва Насаб', 'Мансаб', 'Шӯъба', 'Маоши асосӣ'], ';');
+            foreach ($employees as $index => $emp) {
+                // Determine salary
+                $salary = 8500;
+                $record = PayrollRecord::where('employee_id', $emp->id)->where('month_year', date('Y-m'))->first();
+                if ($record) {
+                    $salary = $record->salary;
+                }
+                
+                fputcsv($file, [
+                    $index + 1,
+                    $emp->name . ' ' . $emp->last_name,
+                    $emp->role ?? 'Маълум нест',
+                    $emp->department ?? 'Маълум нест',
+                    $salary
+                ], ';');
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="payroll_export.csv"',
         ]);
     }

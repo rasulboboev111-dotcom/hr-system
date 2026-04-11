@@ -16,6 +16,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index']);
     Route::get('/positions', [PositionController::class, 'index']);
+    Route::get('/positions/export', [PositionController::class, 'exportCsv']);
     Route::post('/positions', [PositionController::class, 'store']);
     Route::put('/positions/{position}', [PositionController::class, 'update']);
     Route::delete('/positions/{position}', [PositionController::class, 'destroy']);
@@ -34,9 +35,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update']);
     Route::get('/profile', function () { return Inertia::render('Profile'); });
 
-    Route::get('/recruitment', [\App\Http\Controllers\RecruitmentController::class, 'index']);
-    Route::post('/recruitment/generate', [\App\Http\Controllers\RecruitmentController::class, 'generateDescription']);
-
     Route::get('/archive', function (\Illuminate\Http\Request $request) { 
         $query = \App\Models\Employee::onlyTrashed();
 
@@ -52,7 +50,9 @@ Route::middleware('auth')->group(function () {
         
         return Inertia::render('Archive', [
             'employees' => $query->get(),
-            'filters' => $request->only('search')
+            'filters' => $request->only('search'),
+            'departments' => \App\Models\Department::all(),
+            'positions' => \App\Models\Position::all()
         ]); 
     });
 
@@ -73,28 +73,46 @@ Route::middleware('auth')->group(function () {
         return redirect()->back();
     });
 
+    Route::put('/archive/{id}', function (\Illuminate\Http\Request $request, $id) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email'.(\App\Models\Employee::withTrashed()->where('email', $request->email)->where('id', '!=', $id)->exists() ? '|unique:employees,email' : ''),
+            'role' => 'required|string',
+            'department' => 'required|string',
+        ]);
+        
+        $employee = \App\Models\Employee::withTrashed()->findOrFail($id);
+        $employee->update($validated);
+        
+        return redirect()->back();
+    });
+
+    Route::delete('/archive/{id}', function ($id) {
+        $employee = \App\Models\Employee::withTrashed()->findOrFail($id);
+        $employee->forceDelete();
+        return redirect()->back();
+    });
+
     Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index']);
     Route::post('/calendar/events', [\App\Http\Controllers\CalendarController::class, 'store']);
     Route::delete('/calendar/events/{event}', [\App\Http\Controllers\CalendarController::class, 'destroy']);
 
     Route::get('/schedule', [\App\Http\Controllers\ScheduleController::class, 'index']);
+    Route::get('/schedule/export', [\App\Http\Controllers\ScheduleController::class, 'exportCsv']);
     Route::post('/schedule', [\App\Http\Controllers\ScheduleController::class, 'store']);
     Route::delete('/schedule/{shift}', [\App\Http\Controllers\ScheduleController::class, 'destroy']);
 
     Route::get('/timesheet', [\App\Http\Controllers\TimesheetController::class, 'index']);
+    Route::get('/timesheet/export', [\App\Http\Controllers\TimesheetController::class, 'exportCsv']);
+    Route::post('/timesheet/import', [\App\Http\Controllers\TimesheetController::class, 'importCsv']);
     Route::post('/timesheet', [\App\Http\Controllers\TimesheetController::class, 'store']);
 
     Route::get('/payroll', [\App\Http\Controllers\PayrollController::class, 'index']);
     Route::post('/payroll/bonus', [\App\Http\Controllers\PayrollController::class, 'storeBonus']);
     Route::get('/payroll/export', [\App\Http\Controllers\PayrollController::class, 'exportCsv']);
 
-    Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index']);
-    Route::get('/reports/download/{type}', [\App\Http\Controllers\ReportController::class, 'download']);
-
     Route::get('/analytics', [\App\Http\Controllers\AnalyticsController::class, 'index']);
-
-    Route::get('/advisor', [\App\Http\Controllers\AdvisorController::class, 'index']);
-    Route::post('/advisor/generate', [\App\Http\Controllers\AdvisorController::class, 'generate']);
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminController::class, 'usersIndex']);

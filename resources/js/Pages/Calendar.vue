@@ -140,9 +140,6 @@ const handleDeleteEvent = (id) => {
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('calendar.subtitle') }}</p>
                 </div>
                 <div class="flex gap-2">
-                    <button class="h-9 px-3 inline-flex items-center gap-2 text-[11px] font-bold uppercase border border-[hsl(var(--border))] rounded-lg hover:bg-[hsl(var(--muted))]">
-                        <Filter class="h-4 w-4" /> {{ t('common.filter') }}
-                    </button>
                     <button @click="isAddOpen = true" class="h-9 px-3 inline-flex items-center gap-2 text-[11px] font-bold uppercase bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg shadow-sm">
                         <Plus class="h-4 w-4" /> {{ t('calendar.newEvent') }}
                     </button>
