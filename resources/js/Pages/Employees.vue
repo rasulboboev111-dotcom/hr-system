@@ -2,10 +2,11 @@
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { 
     Users, Plus, Search, Filter, Download, UploadCloud,
-    MoreHorizontal, Edit2, Trash2, Mail
+    MoreHorizontal, Edit2, Trash2, Mail,
+    ArrowUpDown, ChevronUp, ChevronDown
 } from 'lucide-vue-next';
 
 const fileInputRef = ref(null);
@@ -44,6 +45,44 @@ const editingId = ref(null);
 
 watch(searchQuery, (value) => {
     router.get('/employees', { search: value }, { preserveState: true, replace: true });
+});
+
+const sortKey = ref(null);
+const sortDir = ref(null);
+
+const handleSort = (key) => {
+    if (sortKey.value === key && sortDir.value === 'asc') {
+        sortDir.value = 'desc';
+    } else if (sortKey.value === key && sortDir.value === 'desc') {
+        sortKey.value = null;
+        sortDir.value = null;
+    } else {
+        sortKey.value = key;
+        sortDir.value = 'asc';
+    }
+};
+
+const sortedEmployees = computed(() => {
+    if (!employees.value?.data) return [];
+    let items = [...employees.value.data];
+    if (sortKey.value && sortDir.value) {
+        items.sort((a, b) => {
+            let aVal, bVal;
+            if (sortKey.value === 'fullname') {
+                aVal = `${a.name} ${a.last_name}`.toLowerCase();
+                bVal = `${b.name} ${b.last_name}`.toLowerCase();
+            } else {
+                aVal = a[sortKey.value] ?? '';
+                bVal = b[sortKey.value] ?? '';
+            }
+            const strA = String(aVal).toLowerCase();
+            const strB = String(bVal).toLowerCase();
+            if (strA < strB) return sortDir.value === 'asc' ? -1 : 1;
+            if (strA > strB) return sortDir.value === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+    return items;
 });
 
 const form = useForm({
@@ -141,15 +180,39 @@ const deleteEmployee = (id) => {
                     <table class="w-full text-left text-sm">
                         <thead class="bg-[hsl(var(--muted))]/30 text-[10px] uppercase font-extrabold text-[hsl(var(--muted-foreground))] tracking-widest">
                             <tr>
-                                <th class="px-6 py-4">{{ t('common.name') }}</th>
-                                <th class="px-6 py-4">{{ t('common.role') }}</th>
-                                <th class="px-6 py-4">{{ t('common.department') }}</th>
-                                <th class="px-6 py-4">{{ t('common.status') }}</th>
+                                <th @click="handleSort('fullname')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'fullname' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('common.name') }}
+                                        <ChevronUp v-if="sortKey === 'fullname' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'fullname' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('role')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'role' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('common.role') }}
+                                        <ChevronUp v-if="sortKey === 'role' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'role' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('department')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'department' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('common.department') }}
+                                        <ChevronUp v-if="sortKey === 'department' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'department' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('status')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'status' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('common.status') }}
+                                        <ChevronUp v-if="sortKey === 'status' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'status' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
                                 <th class="px-6 py-4 text-right">{{ t('common.action') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="emp in employees.data" :key="emp.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02] transition-colors group">
+                            <tr v-for="emp in sortedEmployees" :key="emp.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02] transition-colors group">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="h-10 w-10 rounded-full bg-[hsl(var(--primary))]/10 flex items-center justify-center text-[hsl(var(--primary))] font-bold shadow-sm">

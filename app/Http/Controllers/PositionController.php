@@ -12,7 +12,12 @@ class PositionController extends Controller
     public function index()
     {
         $positions = Position::all()->map(function($pos) {
-            $pos->requiredSkills = json_decode($pos->required_skills, true) ?? [];
+            $decoded = json_decode($pos->required_skills, true);
+            if (is_array($decoded)) {
+                $pos->skills = implode(', ', $decoded);
+            } else {
+                $pos->skills = $pos->required_skills ?? '';
+            }
             return $pos;
         });
 
@@ -35,10 +40,14 @@ class PositionController extends Controller
             'title' => 'required|string|max:255',
             'department' => 'required|string|max:255',
             'status' => 'required|string',
-            'salary' => 'nullable|numeric'
+            'salary' => 'nullable|numeric',
+            'skills' => 'nullable|string'
         ]);
         
-        $validated['required_skills'] = '[]';
+        $skillsStr = $validated['skills'] ?? '';
+        $skillsArray = array_values(array_filter(array_map('trim', explode(',', $skillsStr))));
+        $validated['required_skills'] = json_encode($skillsArray);
+        unset($validated['skills']);
 
         $pos = Position::create($validated);
         
@@ -60,8 +69,14 @@ class PositionController extends Controller
             'title' => 'required|string|max:255',
             'department' => 'required|string|max:255',
             'status' => 'required|string',
-            'salary' => 'nullable|numeric'
+            'salary' => 'nullable|numeric',
+            'skills' => 'nullable|string'
         ]);
+        
+        $skillsStr = $validated['skills'] ?? '';
+        $skillsArray = array_values(array_filter(array_map('trim', explode(',', $skillsStr))));
+        $validated['required_skills'] = json_encode($skillsArray);
+        unset($validated['skills']);
         
         $position->update($validated);
 

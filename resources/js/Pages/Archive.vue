@@ -1,8 +1,8 @@
 <script setup>
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
-import { History, Search, Calendar, MoreVertical, Plus } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { History, Search, Calendar, MoreVertical, Plus, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-vue-next';
+import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
     employees: { type: Array, default: () => [] },
@@ -32,6 +32,43 @@ const submitForm = () => {
         }
     });
 };
+
+const sortKey = ref(null);
+const sortDir = ref(null);
+
+const handleSort = (key) => {
+    if (sortKey.value === key && sortDir.value === 'asc') {
+        sortDir.value = 'desc';
+    } else if (sortKey.value === key && sortDir.value === 'desc') {
+        sortKey.value = null;
+        sortDir.value = null;
+    } else {
+        sortKey.value = key;
+        sortDir.value = 'asc';
+    }
+};
+
+const sortedEmployees = computed(() => {
+    let items = [...props.employees];
+    if (sortKey.value && sortDir.value) {
+        items.sort((a, b) => {
+            let aVal, bVal;
+            if (sortKey.value === 'fullname') {
+                aVal = `${a.name} ${a.last_name}`.toLowerCase();
+                bVal = `${b.name} ${b.last_name}`.toLowerCase();
+            } else {
+                aVal = a[sortKey.value] ?? '';
+                bVal = b[sortKey.value] ?? '';
+            }
+            const strA = String(aVal).toLowerCase();
+            const strB = String(bVal).toLowerCase();
+            if (strA < strB) return sortDir.value === 'asc' ? -1 : 1;
+            if (strA > strB) return sortDir.value === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+    return items;
+});
 </script>
 
 <template>
@@ -66,17 +103,35 @@ const submitForm = () => {
                         <thead>
                             <tr class="bg-[hsl(var(--muted))]/30 uppercase tracking-widest text-[9px] font-bold text-[hsl(var(--muted-foreground))] border-b border-[hsl(var(--border))]">
                                 <th class="w-12 px-6 py-4">№</th>
-                                <th class="px-6 py-4">Ном ва Насаб</th>
-                                <th class="px-6 py-4">Мансаби охирин</th>
-                                <th class="px-6 py-4">Шуъба</th>
+                                <th @click="handleSort('fullname')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'fullname' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">Ном ва Насаб
+                                        <ChevronUp v-if="sortKey === 'fullname' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'fullname' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('role')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'role' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">Мансаби охирин
+                                        <ChevronUp v-if="sortKey === 'role' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'role' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('department')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'department' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">Шуъба
+                                        <ChevronUp v-if="sortKey === 'department' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'department' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
                                 <th class="px-6 py-4">Мӯҳлати кор</th>
                                 <th class="px-6 py-4">Сабаби хориҷшавӣ</th>
                                 <th class="text-right px-6 py-4">Амал</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <template v-if="employees.length > 0">
-                                <tr v-for="(emp, i) in employees" :key="emp.id" class="text-[11px] group transition-colors hover:bg-rose-50/30 border-b border-[hsl(var(--border))] last:border-0">
+                            <template v-if="sortedEmployees.length > 0">
+                                <tr v-for="(emp, i) in sortedEmployees" :key="emp.id" class="text-[11px] group transition-colors hover:bg-rose-50/30 border-b border-[hsl(var(--border))] last:border-0">
                                     <td class="font-bold text-[hsl(var(--muted-foreground))] px-6 py-4">{{ i + 1 }}</td>
                                     <td class="font-bold px-6 py-4">{{ emp.name }} {{ emp.last_name }}</td>
                                     <td class="px-6 py-4">{{ emp.role }}</td>

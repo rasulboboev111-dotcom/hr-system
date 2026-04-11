@@ -4,7 +4,8 @@ import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { computed, ref } from 'vue';
 import { 
-  ShieldCheck, Shield, UserPlus, Search, Edit2, Trash2, CheckCircle2, ChevronRight, Info
+  ShieldCheck, Shield, UserPlus, Search, Edit2, Trash2, CheckCircle2, ChevronRight, Info,
+  ArrowUpDown, ChevronUp, ChevronDown
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -55,6 +56,43 @@ const usersList = computed(() => {
         (u.username || '').toLowerCase().includes(lower) ||
         (u.email || '').toLowerCase().includes(lower)
     );
+});
+
+const sortKey = ref(null);
+const sortDir = ref(null);
+
+const handleSort = (key) => {
+    if (sortKey.value === key && sortDir.value === 'asc') {
+        sortDir.value = 'desc';
+    } else if (sortKey.value === key && sortDir.value === 'desc') {
+        sortKey.value = null;
+        sortDir.value = null;
+    } else {
+        sortKey.value = key;
+        sortDir.value = 'asc';
+    }
+};
+
+const sortedUsers = computed(() => {
+    let items = [...usersList.value];
+    if (sortKey.value && sortDir.value) {
+        items.sort((a, b) => {
+            let aVal, bVal;
+            if (sortKey.value === 'fullname') {
+                aVal = `${a.first_name || ''} ${a.last_name || ''}`.toLowerCase();
+                bVal = `${b.first_name || ''} ${b.last_name || ''}`.toLowerCase();
+            } else {
+                aVal = a[sortKey.value] ?? '';
+                bVal = b[sortKey.value] ?? '';
+            }
+            const strA = String(aVal).toLowerCase();
+            const strB = String(bVal).toLowerCase();
+            if (strA < strB) return sortDir.value === 'asc' ? -1 : 1;
+            if (strA > strB) return sortDir.value === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+    return items;
 });
 
 const openAddUserModal = () => {
@@ -174,16 +212,34 @@ const handleDeleteUser = (id) => {
                                 <thead>
                                     <tr class="bg-[hsl(var(--muted))]/30 uppercase tracking-[0.1em] text-[10px] font-extrabold text-[hsl(var(--muted-foreground))] border-b border-[hsl(var(--border))]">
                                         <th class="w-16 px-8 py-5 text-center">№</th>
-                                        <th class="px-6 py-5">{{ t('admin.username') }}</th>
-                                        <th class="px-6 py-5">{{ t('common.name') }}</th>
-                                        <th class="px-6 py-5">{{ t('common.email') }}</th>
+                                        <th @click="handleSort('username')" class="px-6 py-5 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'username' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                            <div class="flex items-center">{{ t('admin.username') }}
+                                                <ChevronUp v-if="sortKey === 'username' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                                <ChevronDown v-else-if="sortKey === 'username' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                                <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                            </div>
+                                        </th>
+                                        <th @click="handleSort('fullname')" class="px-6 py-5 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'fullname' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                            <div class="flex items-center">{{ t('common.name') }}
+                                                <ChevronUp v-if="sortKey === 'fullname' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                                <ChevronDown v-else-if="sortKey === 'fullname' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                                <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                            </div>
+                                        </th>
+                                        <th @click="handleSort('email')" class="px-6 py-5 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'email' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                            <div class="flex items-center">{{ t('common.email') }}
+                                                <ChevronUp v-if="sortKey === 'email' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                                <ChevronDown v-else-if="sortKey === 'email' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                                <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                            </div>
+                                        </th>
                                         <th class="px-6 py-5">{{ t('admin.roles') }}</th>
                                         <th class="px-6 py-5">{{ t('common.status') }}</th>
                                         <th class="text-right px-8 py-5">{{ t('common.action') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(u, i) in usersList" :key="u.id" class="text-[12px] group transition-all hover:bg-[hsl(var(--primary))]/[0.04] border-b border-[hsl(var(--border))] last:border-0">
+                                    <tr v-for="(u, i) in sortedUsers" :key="u.id" class="text-[12px] group transition-all hover:bg-[hsl(var(--primary))]/[0.04] border-b border-[hsl(var(--border))] last:border-0">
                                         <td class="font-extrabold text-[hsl(var(--primary))] px-8 py-6 text-center">{{ i + 1 }}</td>
                                         <td class="font-mono font-bold text-[hsl(var(--foreground))] px-6 py-6">
                                             <div class="flex items-center gap-2">

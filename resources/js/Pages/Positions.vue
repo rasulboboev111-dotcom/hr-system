@@ -5,7 +5,8 @@ import { useI18n } from '@/lib/i18n';
 import { computed, ref } from 'vue';
 import { 
     Briefcase, Plus, Search, Filter, Download, 
-    MoreHorizontal, Edit2, Trash2, Users2, ShieldCheck, HelpCircle
+    MoreHorizontal, Edit2, Trash2, Users2, ShieldCheck, HelpCircle,
+    ArrowUpDown, ChevronUp, ChevronDown
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -25,6 +26,37 @@ const filteredPositions = computed(() => {
     );
 });
 
+const sortKey = ref(null);
+const sortDir = ref(null);
+
+const handleSort = (key) => {
+    if (sortKey.value === key && sortDir.value === 'asc') {
+        sortDir.value = 'desc';
+    } else if (sortKey.value === key && sortDir.value === 'desc') {
+        sortKey.value = null;
+        sortDir.value = null;
+    } else {
+        sortKey.value = key;
+        sortDir.value = 'asc';
+    }
+};
+
+const sortedPositions = computed(() => {
+    let items = [...filteredPositions.value];
+    if (sortKey.value && sortDir.value) {
+        items.sort((a, b) => {
+            let aVal = a[sortKey.value] ?? '';
+            let bVal = b[sortKey.value] ?? '';
+            const strA = String(aVal).toLowerCase();
+            const strB = String(bVal).toLowerCase();
+            if (strA < strB) return sortDir.value === 'asc' ? -1 : 1;
+            if (strA > strB) return sortDir.value === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+    return items;
+});
+
 const isModalOpen = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
@@ -33,7 +65,8 @@ const form = useForm({
     title: '',
     department: 'Engineering',
     status: 'vacant',
-    salary: ''
+    salary: '',
+    skills: ''
 });
 
 const openAddModal = () => {
@@ -50,6 +83,7 @@ const openEditModal = (pos) => {
     form.department = pos.department;
     form.status = pos.status || 'vacant';
     form.salary = pos.salary || '';
+    form.skills = (pos.requiredSkills || []).join(', ');
     isModalOpen.value = true;
 };
 
@@ -158,24 +192,41 @@ const deletePosition = (id) => {
                         <thead class="bg-[hsl(var(--muted))]/30 text-[10px] uppercase font-extrabold text-[hsl(var(--muted-foreground))] tracking-widest">
                             <tr>
                                 <th class="px-6 py-4">{{ t('positions.table.id') }}</th>
-                                <th class="px-6 py-4">{{ t('positions.table.title') }}</th>
-                                <th class="px-6 py-4">{{ t('common.department') }}</th>
+                                <th @click="handleSort('title')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'title' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('positions.table.title') }}
+                                        <ChevronUp v-if="sortKey === 'title' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'title' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('department')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'department' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('common.department') }}
+                                        <ChevronUp v-if="sortKey === 'department' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'department' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
                                 <th class="px-6 py-4">Малакаҳо</th>
-                                <th class="px-6 py-4">{{ t('common.status') }}</th>
+                                <th @click="handleSort('status')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'status' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('common.status') }}
+                                        <ChevronUp v-if="sortKey === 'status' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'status' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
                                 <th class="px-6 py-4 text-right">{{ t('common.action') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="pos in filteredPositions" :key="pos.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02]">
+                            <tr v-for="pos in sortedPositions" :key="pos.id" class="border-b border-[hsl(var(--border))] last:border-0 hover:bg-[hsl(var(--primary))]/[0.02]">
                                 <td class="px-6 py-4 text-[hsl(var(--muted-foreground))] font-mono">POS-{{ String(pos.id).padStart(4, '0') }}</td>
                                 <td class="px-6 py-4 font-bold">{{ pos.title }}</td>
                                 <td class="px-6 py-4">
                                     <span class="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-[hsl(var(--muted))]">{{ pos.department }}</span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="flex gap-1">
-                                        <span v-for="skill in pos.requiredSkills" :key="skill" class="px-2 py-0.5 rounded text-[9px] bg-blue-50 text-blue-600 font-bold uppercase">{{ skill }}</span>
-                                    </div>
+                                    <span v-if="pos.skills" class="px-2 py-0.5 rounded text-[9px] bg-blue-50 text-blue-600 font-bold uppercase">{{ pos.skills }}</span>
+                                    <span v-else class="text-[9px] text-[hsl(var(--muted-foreground))]">—</span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span v-if="pos.status === 'vacant'" class="text-[10px] font-extrabold uppercase text-orange-600 bg-orange-50 px-2 py-1 rounded">{{ t('common.vacant') }}</span>
@@ -221,8 +272,16 @@ const deletePosition = (id) => {
                         </select>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Лимити Маош</label>
-                        <input type="number" v-model="form.salary" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
+                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Статус</label>
+                        <select v-model="form.status" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
+                            <option value="vacant">Холӣ</option>
+                            <option value="filled">Пур шуд</option>
+                            <option value="on_hold">Тавақкуф</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Малакаҳо</label>
+                        <input v-model="form.skills" placeholder="Малакаҳоро ворид кунед" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
                     </div>
 
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-[hsl(var(--border))] mt-6">

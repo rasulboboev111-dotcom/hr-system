@@ -5,7 +5,8 @@ import { useI18n } from '@/lib/i18n';
 import { ref, computed } from 'vue';
 import { 
   Wallet, Clock, CheckCircle2, Download, Filter, 
-  Search, Plus, MoreVertical, Edit2, Trash2, FileText 
+  Search, Plus, MoreVertical, Edit2, Trash2, FileText,
+  ArrowUpDown, ChevronUp, ChevronDown
 } from 'lucide-vue-next';
 
 // Use same mocked data approach since it's just visual for now, or pass from backend.
@@ -50,8 +51,51 @@ const filteredPayroll = computed(() => {
 });
 
 const totalPayroll = computed(() => 
-  filteredPayroll.value.reduce((acc, e) => acc + (parseFloat(e.salary) || 0) + (parseFloat(e.bonus) || 0), 0)
+  sortedPayroll.value.reduce((acc, e) => acc + (parseFloat(e.salary) || 0) + (parseFloat(e.bonus) || 0), 0)
 );
+
+const sortKey = ref(null);
+const sortDir = ref(null);
+
+const handleSort = (key) => {
+    if (sortKey.value === key && sortDir.value === 'asc') {
+        sortDir.value = 'desc';
+    } else if (sortKey.value === key && sortDir.value === 'desc') {
+        sortKey.value = null;
+        sortDir.value = null;
+    } else {
+        sortKey.value = key;
+        sortDir.value = 'asc';
+    }
+};
+
+const sortedPayroll = computed(() => {
+    let items = [...filteredPayroll.value];
+    if (sortKey.value && sortDir.value) {
+        items.sort((a, b) => {
+            let aVal, bVal;
+            if (sortKey.value === 'total') {
+                aVal = (parseFloat(a.salary) || 0) + (parseFloat(a.bonus) || 0);
+                bVal = (parseFloat(b.salary) || 0) + (parseFloat(b.bonus) || 0);
+            } else if (sortKey.value === 'name') {
+                aVal = `${a.first_name} ${a.last_name}`.toLowerCase();
+                bVal = `${b.first_name} ${b.last_name}`.toLowerCase();
+            } else {
+                aVal = a[sortKey.value] ?? '';
+                bVal = b[sortKey.value] ?? '';
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDir.value === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+            const strA = String(aVal).toLowerCase();
+            const strB = String(bVal).toLowerCase();
+            if (strA < strB) return sortDir.value === 'asc' ? -1 : 1;
+            if (strA > strB) return sortDir.value === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+    return items;
+});
 
 const handleAddPayroll = () => {
     if (!form.employee_id || !form.salary) return;
@@ -144,18 +188,48 @@ const handleExport = () => {
                         <thead>
                             <tr class="bg-[hsl(var(--muted))]/30 uppercase tracking-widest text-[9px] font-bold border-b border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))]">
                                 <th class="w-12 px-6 py-4">№</th>
-                                <th class="px-6 py-4">{{ t('menu.employees') }}</th>
-                                <th class="px-6 py-4">{{ t('common.department') }}</th>
-                                <th class="px-6 py-4">{{ t('payroll.salary') }} (TJS)</th>
-                                <th class="px-6 py-4">{{ t('payroll.bonus') }}</th>
-                                <th class="px-6 py-4">{{ t('payroll.total') }}</th>
+                                <th @click="handleSort('name')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'name' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('menu.employees') }}
+                                        <ChevronUp v-if="sortKey === 'name' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'name' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('department')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'department' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('common.department') }}
+                                        <ChevronUp v-if="sortKey === 'department' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'department' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('salary')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'salary' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('payroll.salary') }} (TJS)
+                                        <ChevronUp v-if="sortKey === 'salary' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'salary' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('bonus')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'bonus' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('payroll.bonus') }}
+                                        <ChevronUp v-if="sortKey === 'bonus' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'bonus' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
+                                <th @click="handleSort('total')" class="px-6 py-4 cursor-pointer transition-all group whitespace-nowrap" :class="sortKey === 'total' ? 'bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))]' : 'hover:bg-[hsl(var(--muted))]/50'">
+                                    <div class="flex items-center">{{ t('payroll.total') }}
+                                        <ChevronUp v-if="sortKey === 'total' && sortDir === 'asc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ChevronDown v-else-if="sortKey === 'total' && sortDir === 'desc'" class="ml-2 h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+                                        <ArrowUpDown v-else class="ml-2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/30 group-hover:text-[hsl(var(--muted-foreground))]/60" />
+                                    </div>
+                                </th>
                                 <th class="px-6 py-4">{{ t('common.status') }}</th>
                                 <th class="text-right px-6 py-4">{{ t('common.action') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <template v-if="filteredPayroll.length > 0">
-                                <tr v-for="(emp, i) in filteredPayroll" :key="emp.id" class="text-[11px] group transition-colors hover:bg-[hsl(var(--primary))]/[0.03] border-b border-[hsl(var(--border))] last:border-0">
+                            <template v-if="sortedPayroll.length > 0">
+                                <tr v-for="(emp, i) in sortedPayroll" :key="emp.id" class="text-[11px] group transition-colors hover:bg-[hsl(var(--primary))]/[0.03] border-b border-[hsl(var(--border))] last:border-0">
                                     <td class="font-bold text-[hsl(var(--primary))] px-6 py-4">{{ i + 1 }}</td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-col">
