@@ -11,6 +11,7 @@ import { usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     users: { type: Array, default: () => [] },
+    filters: { type: Object, default: () => ({ search: '' }) },
     rolesData: { type: Object, default: () => ({ roles: [], permissions: [] }) }
 });
 
@@ -122,21 +123,22 @@ const permissions = computed(() => {
     ];
 });
 
-const searchQuery = ref('');
+import { watch } from 'vue';
+
+const searchQuery = ref(props.filters?.search || '');
+
+watch(searchQuery, (value) => {
+    router.get('/admin/users', { search: value }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true
+    });
+});
 
 const usersList = computed(() => {
-    const defaultList = props.users.length ? props.users : [
+    return props.users.length ? props.users : [
         { id: 1, username: 'admin', first_name: 'Super', last_name: 'Admin', email: 'admin@siizi.ru', roleIds: ['admin'] }
     ];
-    
-    if (!searchQuery.value) return defaultList;
-    const lower = searchQuery.value.toLowerCase();
-    
-    return defaultList.filter(u => 
-        ((u.first_name || '') + ' ' + (u.last_name || '')).toLowerCase().includes(lower) ||
-        (u.username || '').toLowerCase().includes(lower) ||
-        (u.email || '').toLowerCase().includes(lower)
-    );
 });
 
 const sortKey = ref(null);

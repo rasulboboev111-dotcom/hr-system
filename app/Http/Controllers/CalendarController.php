@@ -9,13 +9,26 @@ use App\Models\AuditLog;
 
 class CalendarController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_calendar')) {
             abort(403, 'Шумо ҳуқуқи дидани тақвимро надоред.');
         }
+
+        $query = CalendarEvent::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('description', 'ilike', "%{$search}%")
+                  ->orWhere('type', 'ilike', "%{$search}%");
+            });
+        }
+
         return Inertia::render('Calendar', [
-            'eventsList' => CalendarEvent::all()
+            'eventsList' => $query->get(),
+            'filters' => $request->only('search')
         ]);
     }
 

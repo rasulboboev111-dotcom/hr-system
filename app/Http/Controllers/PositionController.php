@@ -9,12 +9,24 @@ use Inertia\Inertia;
 
 class PositionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_positions')) {
             abort(403, 'Шумо ҳуқуқи дидани мансабҳоро надоред.');
         }
-        $positions = Position::all()->map(function($pos) {
+
+        $query = Position::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('department', 'ilike', "%{$search}%")
+                  ->orWhere('status', 'ilike', "%{$search}%");
+            });
+        }
+
+        $positions = $query->get()->map(function($pos) {
             $decoded = json_decode($pos->required_skills, true);
             if (is_array($decoded)) {
                 $pos->skills = implode(', ', $decoded);
@@ -33,6 +45,7 @@ class PositionController extends Controller
 
         return Inertia::render('Positions', [
             'positions' => $positions,
+            'filters' => $request->only('search'),
             'stats' => $stats,
             'departments' => \App\Models\Department::all()
         ]);

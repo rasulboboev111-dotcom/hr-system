@@ -2,14 +2,26 @@
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
+import { ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { 
     Sparkles, Plus, Users, Clock, Briefcase, 
-    ArrowRight, LayoutDashboard, Wand2 
+    ArrowRight, LayoutDashboard, Wand2, Search 
 } from 'lucide-vue-next';
-import { ref } from 'vue';
+
+const searchQuery = ref(props.filters?.search || '');
+
+watch(searchQuery, (value) => {
+    router.get('/recruitment', { search: value }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true
+    });
+});
 
 const props = defineProps({
     vacancies: { type: Array, default: () => [] },
+    filters: { type: Object, default: () => ({ search: '' }) }
 });
 
 const { t } = useI18n();
@@ -73,9 +85,15 @@ const generateAiDescription = () => {
                             <LayoutDashboard class="h-5 w-5 text-[hsl(var(--primary))]" />
                             {{ t('recruitment.activeVacancies') }}
                         </h2>
-                        <span class="bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))] border-none text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">
-                            {{ vacancies.length }} {{ t('common.active').toUpperCase() }}
-                        </span>
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-64 hidden md:block">
+                                <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]" />
+                                <input v-model="searchQuery" :placeholder="t('common.search')" class="w-full h-9 pl-9 pr-4 text-[10px] font-bold uppercase tracking-widest bg-white border border-[hsl(var(--border))] rounded-xl focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]/20 transition-all" />
+                            </div>
+                            <span class="bg-[hsl(var(--primary))]/5 text-[hsl(var(--primary))] border-none text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shrink-0">
+                                {{ vacancies.length }} {{ t('common.active').toUpperCase() }}
+                            </span>
+                        </div>
                     </div>
                     
                     <div class="grid gap-4">

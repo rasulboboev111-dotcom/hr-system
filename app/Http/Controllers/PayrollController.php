@@ -11,14 +11,29 @@ use Illuminate\Support\Facades\Response;
 
 class PayrollController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_payroll')) {
             abort(403, 'Шумо ҳуқуқи дидани маошро надоред.');
         }
+
+        $query = Employee::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                  ->orWhere('last_name', 'ilike', "%{$search}%")
+                  ->orWhere('email', 'ilike', "%{$search}%")
+                  ->orWhere('department', 'ilike', "%{$search}%")
+                  ->orWhere('role', 'ilike', "%{$search}%");
+            });
+        }
+
         return Inertia::render('Payroll', [
-            'employees' => Employee::all(),
-            'payroll_records' => PayrollRecord::all()
+            'employees' => $query->get(),
+            'payroll_records' => PayrollRecord::all(),
+            'filters' => $request->only('search')
         ]);
     }
 

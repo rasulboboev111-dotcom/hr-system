@@ -11,6 +11,7 @@ import {
 
 const props = defineProps({
     positions: Array,
+    filters: Object,
     stats: Object,
     departments: {
         type: Array,
@@ -20,14 +21,16 @@ const props = defineProps({
 const page = usePage();
 const { t } = useI18n();
 
-const searchQuery = ref('');
-const filteredPositions = computed(() => {
-    if (!searchQuery.value) return props.positions;
-    const lower = searchQuery.value.toLowerCase();
-    return props.positions.filter(p => 
-        (p.title || '').toLowerCase().includes(lower) || 
-        (p.department || '').toLowerCase().includes(lower)
-    );
+import { watch } from 'vue';
+
+const searchQuery = ref(props.filters?.search || '');
+
+watch(searchQuery, (value) => {
+    router.get('/positions', { search: value }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true
+    });
 });
 
 const sortKey = ref(null);
@@ -46,7 +49,7 @@ const handleSort = (key) => {
 };
 
 const sortedPositions = computed(() => {
-    let items = [...filteredPositions.value];
+    let items = [...props.positions];
     if (sortKey.value && sortDir.value) {
         items.sort((a, b) => {
             let aVal = a[sortKey.value] ?? '';

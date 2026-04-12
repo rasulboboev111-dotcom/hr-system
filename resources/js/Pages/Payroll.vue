@@ -13,7 +13,8 @@ import {
 // In this case, we'll accept employees as a prop.
 const props = defineProps({
   employees: { type: Array, default: () => [] },
-  payroll_records: { type: Array, default: () => [] }
+  payroll_records: { type: Array, default: () => [] },
+  filters: { type: Object, default: () => ({ search: '' }) }
 });
 const page = usePage();
 const { t, language } = useI18n();
@@ -31,7 +32,18 @@ const payrollData = computed(() => {
   });
 });
 
-const searchTerm = ref('');
+import { watch } from 'vue';
+import { router } from '@inertiajs/vue3';
+
+const searchTerm = ref(props.filters?.search || '');
+
+watch(searchTerm, (value) => {
+    router.get('/payroll', { search: value }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true
+    });
+});
 const isAddOpen = ref(false);
 
 const form = useForm({
@@ -77,7 +89,7 @@ const handleSort = (key) => {
 };
 
 const sortedPayroll = computed(() => {
-    let items = [...filteredPayroll.value];
+    let items = [...payrollData.value];
     if (sortKey.value && sortDir.value) {
         items.sort((a, b) => {
             let aVal, bVal;

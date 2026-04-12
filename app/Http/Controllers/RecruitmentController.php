@@ -9,10 +9,22 @@ use App\Models\AuditLog;
 
 class RecruitmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $vacancies = Position::where('status', 'vacant')->get();
-        return Inertia::render('Recruitment', ['vacancies' => $vacancies]);
+        $query = Position::where('status', 'vacant');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('department', 'ilike', "%{$search}%");
+            });
+        }
+
+        return Inertia::render('Recruitment', [
+            'vacancies' => $query->get(),
+            'filters' => $request->only('search')
+        ]);
     }
 
     public function generateDescription(Request $request)

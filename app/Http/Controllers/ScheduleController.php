@@ -10,14 +10,27 @@ use App\Models\AuditLog;
 
 class ScheduleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_schedule')) {
             abort(403, 'Шумо ҳуқуқи дидани ҷадвалро надоред.');
         }
+
+        $query = Employee::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%");
+            });
+        }
+
         return Inertia::render('Schedule', [
-            'employees' => Employee::all(),
-            'shifts' => Shift::all()
+            'employees' => $query->get(),
+            'shifts' => Shift::all(),
+            'filters' => $request->only('search')
         ]);
     }
 

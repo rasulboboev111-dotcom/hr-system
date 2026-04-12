@@ -10,12 +10,20 @@ use Inertia\Inertia;
 
 class DepartmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_departments')) {
             abort(403, 'Шумо ҳуқуқи дидани шӯъбаҳоро надоред.');
         }
-        $departments = Department::all()->map(function($dept) {
+
+        $query = Department::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'ilike', "%{$search}%");
+        }
+
+        $departments = $query->get()->map(function($dept) {
             $employeesCount = Employee::where('department', $dept->name)->count();
             $vacanciesCount = Position::where('department', $dept->name)->where('status', 'vacant')->count();
             $filledCount = Position::where('department', $dept->name)->where('status', 'filled')->count();
@@ -38,6 +46,7 @@ class DepartmentController extends Controller
 
         return Inertia::render('Departments', [
             'departments' => $departments,
+            'filters' => $request->only('search'),
             'stats' => [
                 'totalDepts' => Department::count(),
                 'totalEmployees' => Employee::count(),

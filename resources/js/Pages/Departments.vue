@@ -3,10 +3,11 @@ import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { ref, computed } from 'vue';
-import { Building2, Users, Briefcase, Plus, Trash2, PieChart } from 'lucide-vue-next';
+import { Building2, Users, Briefcase, Plus, Trash2, PieChart, Search } from 'lucide-vue-next';
 
 const props = defineProps({
     departments: Array,
+    filters: Object,
     stats: Object,
     topEmployees: { type: Object, default: () => ({}) }
 });
@@ -59,6 +60,18 @@ const deleteDept = (id) => {
     }
 };
 
+import { watch } from 'vue';
+
+const searchQuery = ref(props.filters?.search || '');
+
+watch(searchQuery, (value) => {
+    router.get('/departments', { search: value }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true
+    });
+});
+
 const canAdd = computed(() => page.props.auth.permissions.includes('add_departments') || page.props.auth.permissions.includes('all'));
 const canEdit = computed(() => page.props.auth.permissions.includes('edit_departments') || page.props.auth.permissions.includes('all'));
 const canDelete = computed(() => page.props.auth.permissions.includes('delete_departments') || page.props.auth.permissions.includes('all'));
@@ -80,7 +93,19 @@ const canDelete = computed(() => page.props.auth.permissions.includes('delete_de
                 </button>
             </div>
 
-            <!-- Stats Overview -->
+            <!-- Search and Stats -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full md:max-w-sm">
+                    <Search class="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                    <input v-model="searchQuery" :placeholder="t('common.search')" class="pl-10 h-10 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] focus:ring-1 focus:ring-[hsl(var(--ring))] outline-none" />
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold border border-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5 px-4 py-1.5 rounded-full uppercase tracking-tighter">
+                        {{ departments.length }} {{ t('menu.departments') }}
+                    </span>
+                </div>
+            </div>
+
             <div v-if="stats" class="grid gap-4 md:grid-cols-4">
                 <div class="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm p-4 flex items-center gap-4">
                     <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">

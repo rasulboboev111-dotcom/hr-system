@@ -11,7 +11,8 @@ import {
 const props = defineProps({
     employees: { type: Array, default: () => [] },
     attendances: { type: Array, default: () => [] },
-    departments: { type: Array, default: () => [] }
+    departments: { type: Array, default: () => [] },
+    filters: { type: Object, default: () => ({ search: '' }) }
 });
 const page = usePage();
 const { t } = useI18n();
@@ -21,7 +22,18 @@ const { t } = useI18n();
 const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
 const isAddOpen = ref(false);
 const form = useForm({ employee_name: '', day: '1', status: 'P', date_key: '', department: '' });
+import { watch } from 'vue';
+
+const searchQuery = ref(props.filters?.search || '');
 const selectedDepartment = ref('');
+
+watch(searchQuery, (value) => {
+    router.get('/timesheet', { search: value }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true
+    });
+});
 
 const activeEmployees = computed(() => {
     let list = props.employees.filter(e => (String(e.status || '')).trim().toLowerCase() !== 'retired');
@@ -223,7 +235,7 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                 <div class="p-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/5 flex items-center justify-between gap-4">
                     <div class="relative flex-1 max-w-sm">
                         <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
-                        <input :placeholder="t('common.search')" class="pl-9 h-9 w-full text-[11px] rounded-lg border-none bg-[hsl(var(--muted))]/20 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
+                        <input v-model="searchQuery" :placeholder="t('common.search')" class="pl-9 h-9 w-full text-[11px] rounded-lg border-none bg-[hsl(var(--muted))]/20 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="text-[9px] font-bold border border-emerald-500/20 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-md uppercase cursor-default">P - {{ t('timesheet.present') }}</span>

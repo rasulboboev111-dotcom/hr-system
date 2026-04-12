@@ -16,12 +16,25 @@ class AdminController extends Controller
             abort(403, 'Шумо ҳуқуқи дидани корбаронро надоред.');
         }
 
+        $query = User::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('username', 'ilike', "%{$search}%")
+                  ->orWhere('first_name', 'ilike', "%{$search}%")
+                  ->orWhere('last_name', 'ilike', "%{$search}%")
+                  ->orWhere('email', 'ilike', "%{$search}%");
+            });
+        }
+
         $rolesFile = storage_path('app/roles.json');
         $parsed = file_exists($rolesFile) ? json_decode(file_get_contents($rolesFile), true) : null;
         $rolesData = $parsed ?: ['roles' => [], 'permissions' => []];
 
         return Inertia::render('Admin/Users', [
-            'users' => User::all(),
+            'users' => $query->get(),
+            'filters' => $request->only('search'),
             'rolesData' => $rolesData
         ]);
     }
@@ -394,14 +407,14 @@ class AdminController extends Controller
 
             $query->where(function($q) use ($search, $mapping) {
                 // Personal search (User/Username)
-                $q->where('user_name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                $q->where('user_name', 'ilike', "%{$search}%")
+                  ->orWhere('description', 'ilike', "%{$search}%");
 
                 // Check for mapped actions
                 foreach ($mapping['actions'] as $en => $locales) {
                     foreach ($locales as $term) {
                         if (str_contains($search, $term) || str_contains($en, $search)) {
-                            $q->orWhere('action', 'like', "%{$en}%");
+                            $q->orWhere('action', 'ilike', "%{$en}%");
                             break;
                         }
                     }
@@ -411,7 +424,7 @@ class AdminController extends Controller
                 foreach ($mapping['entities'] as $en => $locales) {
                     foreach ($locales as $term) {
                         if (str_contains($search, $term) || str_contains($en, $search)) {
-                            $q->orWhere('entity_type', 'like', "%{$en}%");
+                            $q->orWhere('entity_type', 'ilike', "%{$en}%");
                             break;
                         }
                     }

@@ -4,16 +4,28 @@ import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { 
     Clock, Calendar as CalendarIcon, Users, Plus, Filter, 
-    ChevronLeft, ChevronRight, Palmtree, Coffee, Trash2
+    ChevronLeft, ChevronRight, Palmtree, Coffee, Trash2, Search
 } from 'lucide-vue-next';
+
+const searchQuery = ref(props.filters?.search || '');
+
+watch(searchQuery, (value) => {
+    router.get('/calendar', { search: value }, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true
+    });
+});
 
 const props = defineProps({
     eventsList: {
         type: Array,
         default: () => []
-    }
+    },
+    filters: { type: Object, default: () => ({ search: '' }) }
 });
 const page = usePage();
 const { t } = useI18n();
@@ -37,14 +49,21 @@ const currentYear = ref(today.getFullYear());
 const selectedDay = ref(today.getDate());
 
 const events = computed(() => {
-    // Filter props.eventsList by selected date
-    const selected = `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(selectedDay.value).padStart(2, '0')}`;
-    return props.eventsList.filter(e => e.date === selected).map(e => ({
+    let list = props.eventsList;
+    
+    // If not searching, filter by selected date
+    if (!searchQuery.value) {
+        const selected = `${currentYear.value}-${String(currentMonth.value + 1).padStart(2, '0')}-${String(selectedDay.value).padStart(2, '0')}`;
+        list = list.filter(e => e.date === selected);
+    }
+    
+    return list.map(e => ({
         id: e.id,
-        time: '10:00', // Mock time since we used just 'date' in migration
+        time: '10:00', 
         title: e.title,
         type: e.type,
-        participants: 1
+        participants: 1,
+        date: e.date // useful for showing when searching
     }));
 });
 
@@ -198,11 +217,21 @@ const canDelete = computed(() => page.props.auth.permissions.includes('delete_ca
                     </div>
 
                     <div class="border border-[hsl(var(--border))] shadow-sm flex flex-col bg-white rounded-xl overflow-hidden">
-                        <div class="border-b px-6 py-4 flex items-center justify-between bg-[hsl(var(--muted))]/5">
-                            <h3 class="text-[13px] font-bold flex items-center gap-2">
-                                <CalendarIcon class="h-4 w-4 text-[hsl(var(--primary))]" />
-                                {{ t('calendar.scheduleFor') }} {{ selectedDay }}/{{ currentMonth + 1 }}/{{ currentYear }}
+                        <div class="border-b px-6 py-4 flex items-center justify-between bg-[hsl(var(--muted))]/5 gap-4">
+                            <h3 class="text-[13px] font-bold flex items-center gap-2 shrink-0">
+                                <CalendarIcon v-if="!searchQuery" class="h-4 w-4 text-[hsl(var(--primary))]" />
+                                <Search v-else class="h-4 w-4 text-[hsl(var(--primary))]" />
+                                <template v-if="!searchQuery">
+                                    {{ t('calendar.scheduleFor') }} {{ selectedDay }}/{{ currentMonth + 1 }}/{{ currentYear }}
+                                </template>
+                                <template v-else>
+                                    {{ t('common.search') }}: "{{ searchQuery }}"
+                                </template>
                             </h3>
+                            <div class="relative flex-1 max-w-[200px]">
+                                <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]" />
+                                <input v-model="searchQuery" :placeholder="t('common.search')" class="w-full h-8 pl-8 pr-3 text-[10px] font-bold uppercase tracking-widest bg-white border border-[hsl(var(--border))] rounded-lg focus:outline-none" />
+                            </div>
                         </div>
                         <div v-if="!selectedHoliday">
                             <div class="divide-y border-t">
@@ -211,6 +240,7 @@ const canDelete = computed(() => page.props.auth.permissions.includes('delete_ca
                                         <div class="flex gap-8">
                                             <div class="flex flex-col items-center justify-center min-w-[70px] py-1 border-r pr-8 border-[hsl(var(--muted))]">
                                                 <span class="text-sm font-bold text-[hsl(var(--primary))]">{{ event.time }}</span>
+                                                <span v-if="searchQuery" class="text-[8px] font-bold text-[hsl(var(--muted-foreground))] mt-1">{{ event.date }}</span>
                                             </div>
                                             <div class="space-y-2">
                                                 <h4 class="text-[14px] font-bold text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--primary))] transition-colors leading-none">

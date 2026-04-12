@@ -11,15 +11,30 @@ use Illuminate\Support\Facades\DB;
 
 class TimesheetController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_timesheet')) {
             abort(403, 'Шумо ҳуқуқи дидани ҷадвали ҳузурро надоред.');
         }
+
+        $query = Employee::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                  ->orWhere('last_name', 'ilike', "%{$search}%")
+                  ->orWhere('email', 'ilike', "%{$search}%")
+                  ->orWhere('department', 'ilike', "%{$search}%")
+                  ->orWhere('role', 'ilike', "%{$search}%");
+            });
+        }
+
         return Inertia::render('Timesheet', [
-            'employees' => Employee::all(),
+            'employees' => $query->get(),
             'attendances' => Attendance::all(),
-            'departments' => \App\Models\Department::all()
+            'departments' => \App\Models\Department::all(),
+            'filters' => $request->only('search')
         ]);
     }
 
