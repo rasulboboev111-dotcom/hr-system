@@ -24,7 +24,7 @@ const form = useForm({ employee_name: '', day: '1', status: 'P', date_key: '', d
 const selectedDepartment = ref('');
 
 const activeEmployees = computed(() => {
-    let list = props.employees.filter(e => (e.status || '').toLowerCase() !== 'retired');
+    let list = props.employees.filter(e => (String(e.status || '')).trim().toLowerCase() !== 'retired');
     if (selectedDepartment.value) {
         list = list.filter(e => e.department === selectedDepartment.value);
     }
@@ -32,7 +32,7 @@ const activeEmployees = computed(() => {
 });
 
 const modalActiveEmployees = computed(() => {
-    let list = props.employees.filter(e => (e.status || '').toLowerCase() !== 'retired');
+    let list = props.employees.filter(e => (String(e.status || '')).trim().toLowerCase() !== 'retired');
     if (form.department) {
         list = list.filter(e => e.department === form.department);
     }
@@ -254,7 +254,7 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                                     @click="toggleAttendance(emp.id, day)"
                                     class="p-0 border-r border-[hsl(var(--border))] text-center cursor-pointer hover:bg-[hsl(var(--primary))]/10 transition-colors"
                                     :class="{'bg-[hsl(var(--muted))]/10': day % 7 === 0 || day % 7 === 6}">
-                                    <span v-if="attendanceData[emp.id]?.[day] && !(day % 7 === 0 || day % 7 === 6)" 
+                                    <span v-if="attendanceData[emp.id]?.[day]" 
                                         class="text-[10px] font-bold block w-full py-2.5"
                                         :class="{
                                             'text-emerald-600': attendanceData[emp.id][day] === 'P',

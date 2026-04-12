@@ -86,16 +86,16 @@ class TimesheetController extends Controller
 
         $callback = function() use ($employees, $attMap) {
             $file = fopen('php://output', 'w');
-            fwrite($file, "\xEF\xBB\xBF");
-
-            $header = ['Корманд'];
-            for ($d = 1; $d <= 31; $d++) { $header[] = $d; }
+            
+            // Prepend BOM to the first header element to avoid column shift
+            $header = ["\xEF\xBB\xBF" . 'Корманд'];
+            for ($d = 1; $d <= 31; $d++) { $header[] = (string)$d; }
             $header[] = 'Соатҳои умумӣ';
             fputcsv($file, $header, ';');
 
             foreach ($employees as $emp) {
-                // Skip retired employees (case-insensitive check)
-                if (strtolower($emp->status) === 'retired') continue;
+                // Skip retired employees (case-insensitive check with trim)
+                if (trim(strtolower($emp->status ?? '')) === 'retired') continue;
 
                 $row = [($emp->name) . ' ' . ($emp->last_name ?? '')];
                 $presentDays = 0;
