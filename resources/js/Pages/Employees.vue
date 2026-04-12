@@ -1,5 +1,5 @@
 <script setup>
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { ref, watch, computed } from 'vue';
@@ -43,7 +43,7 @@ const props = defineProps({
         default: () => []
     }
 });
-
+const page = usePage();
 const { t } = useI18n();
 
 const searchQuery = ref(props.filters?.search || '');
@@ -57,6 +57,12 @@ watch(searchQuery, (value) => {
 
 const sortKey = ref(null);
 const sortDir = ref(null);
+
+const canAdd = computed(() => page.props.auth.permissions.includes('add_employees') || page.props.auth.permissions.includes('all'));
+const canEdit = computed(() => page.props.auth.permissions.includes('edit_employees') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_employees') || page.props.auth.permissions.includes('all'));
+const canExport = computed(() => page.props.auth.permissions.includes('export_employees') || page.props.auth.permissions.includes('all'));
+const canImport = computed(() => page.props.auth.permissions.includes('import_employees') || page.props.auth.permissions.includes('all'));
 
 const handleSort = (key) => {
     if (sortKey.value === key && sortDir.value === 'asc') {
@@ -161,13 +167,13 @@ const deleteEmployee = (id) => {
                 </div>
                 <div class="flex items-center gap-3">
                     <input type="file" ref="fileInputRef" accept=".csv" class="hidden" @change="handleImport" />
-                    <button @click="fileInputRef.click()" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
+                    <button v-if="canImport" @click="fileInputRef.click()" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
                         <UploadCloud class="h-4 w-4" /> Импорти CSV
                     </button>
-                    <button @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
+                    <button v-if="canExport" @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
                         <Download class="h-4 w-4" /> {{ t('common.export') }}
                     </button>
-                    <button @click="openAddModal" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-lg shadow-[hsl(var(--primary))]/20 gap-2">
+                    <button v-if="canAdd" @click="openAddModal" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-lg shadow-[hsl(var(--primary))]/20 gap-2">
                         <Plus class="h-4 w-4" /> {{ t('common.add') }}
                     </button>
                 </div>
@@ -246,10 +252,10 @@ const deleteEmployee = (id) => {
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <button @click="openEditModal(emp)" class="p-2 hover:bg-[hsl(var(--muted))] rounded-lg">
-                        <Edit2 class="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
-                    </button>
-                                    <button @click="deleteEmployee(emp.id)" class="p-2 hover:bg-rose-50 text-[hsl(var(--destructive))] rounded-lg ml-1">
+                                    <button v-if="canEdit" @click="openEditModal(emp)" class="p-2 hover:bg-[hsl(var(--muted))] rounded-lg">
+                                        <Edit2 class="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                                    </button>
+                                    <button v-if="canDelete" @click="deleteEmployee(emp.id)" class="p-2 hover:bg-rose-50 text-[hsl(var(--destructive))] rounded-lg ml-1">
                                         <Trash2 class="h-4 w-4" />
                                     </button>
                                 </td>

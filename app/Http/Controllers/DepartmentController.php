@@ -12,6 +12,9 @@ class DepartmentController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasPermission('view_departments')) {
+            abort(403, 'Шумо ҳуқуқи дидани шӯъбаҳоро надоред.');
+        }
         $departments = Department::all()->map(function($dept) {
             $employeesCount = Employee::where('department', $dept->name)->count();
             $vacanciesCount = Position::where('department', $dept->name)->where('status', 'vacant')->count();
@@ -48,6 +51,10 @@ class DepartmentController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('add_departments')) {
+            abort(403, 'Шумо ҳуқуқи илова кардани шӯъбаҳоро надоред.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255'
         ]);
@@ -55,8 +62,8 @@ class DepartmentController extends Controller
         $dept = Department::create($validated);
 
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Create Department',
             'entity_type' => 'Department',
             'description' => json_encode(['name' => $dept->name]),
@@ -68,6 +75,10 @@ class DepartmentController extends Controller
 
     public function update(Request $request, Department $department)
     {
+        if (!$request->user()->hasPermission('edit_departments')) {
+            abort(403, 'Шумо ҳуқуқи таҳрир кардани шӯъбаҳоро надоред.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255'
         ]);
@@ -75,8 +86,8 @@ class DepartmentController extends Controller
         $department->update($validated);
 
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Update Department',
             'entity_type' => 'Department',
             'description' => json_encode(['id' => $department->id, 'name' => $department->name]),
@@ -86,15 +97,19 @@ class DepartmentController extends Controller
         return redirect()->back();
     }
 
-    public function destroy(Department $department)
+    public function destroy(Request $request, Department $department)
     {
+        if (!$request->user()->hasPermission('delete_departments')) {
+            abort(403, 'Шумо ҳуқуқи нест кардани шӯъбаҳоро надоред.');
+        }
+
         $id = $department->id;
         $name = $department->name;
         $department->delete();
 
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Delete Department',
             'entity_type' => 'Department',
             'description' => json_encode(['id' => $id, 'name' => $name]),

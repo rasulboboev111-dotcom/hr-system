@@ -48,4 +48,61 @@ class User extends Authenticatable
         'role_ids' => 'array',
         'active_permissions' => 'array',
     ];
+
+    public function hasPermission($permission)
+    {
+        $roleIds = $this->role_ids ?? [];
+        if (in_array('admin', $roleIds)) {
+            return true;
+        }
+
+        $rolesFile = storage_path('app/roles.json');
+        if (!file_exists($rolesFile)) {
+            return false;
+        }
+
+        $data = json_decode(file_get_contents($rolesFile), true);
+        if (!$data || !isset($data['roles'])) {
+            return false;
+        }
+
+        foreach ($data['roles'] as $role) {
+            if (in_array($role['id'], $roleIds)) {
+                $perms = $role['permissionIds'] ?? [];
+                if (in_array('all', $perms) || in_array('view_all', $perms) || in_array('edit_all', $perms) || in_array($permission, $perms)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function getPermissionIds()
+    {
+        $roleIds = $this->role_ids ?? [];
+        if (in_array('admin', $roleIds)) {
+            return ['all']; // Super admin has everything
+        }
+
+        $rolesFile = storage_path('app/roles.json');
+        if (!file_exists($rolesFile)) {
+            return [];
+        }
+
+        $data = json_decode(file_get_contents($rolesFile), true);
+        if (!$data || !isset($data['roles'])) {
+            return [];
+        }
+
+        $allPerms = [];
+        foreach ($data['roles'] as $role) {
+            if (in_array($role['id'], $roleIds)) {
+                $rolePerms = $role['permissionIds'] ?? [];
+                $allPerms = array_merge($allPerms, $rolePerms);
+            }
+        }
+
+        return array_values(array_unique($allPerms));
+    }
 }

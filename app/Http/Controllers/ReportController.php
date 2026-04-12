@@ -10,6 +10,9 @@ class ReportController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasPermission('view_reports')) {
+            abort(403, 'Шумо ҳуқуқи дидани ҳисоботҳоро надоред.');
+        }
         return Inertia::render('Reports');
     }
 

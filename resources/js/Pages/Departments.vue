@@ -1,8 +1,8 @@
 <script setup>
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Building2, Users, Briefcase, Plus, Trash2, PieChart } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -10,7 +10,7 @@ const props = defineProps({
     stats: Object,
     topEmployees: { type: Object, default: () => ({}) }
 });
-
+const page = usePage();
 const { t } = useI18n();
 
 const form = useForm({
@@ -58,6 +58,10 @@ const deleteDept = (id) => {
         router.delete(`/departments/${id}`);
     }
 };
+
+const canAdd = computed(() => page.props.auth.permissions.includes('add_departments') || page.props.auth.permissions.includes('all'));
+const canEdit = computed(() => page.props.auth.permissions.includes('edit_departments') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_departments') || page.props.auth.permissions.includes('all'));
 </script>
 
 <template>
@@ -71,7 +75,7 @@ const deleteDept = (id) => {
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('departments.subtitle') }}</p>
                 </div>
                 
-                <button @click="openAddModal" class="h-9 px-4 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] inline-flex items-center gap-2 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-[hsl(var(--primary))]/20 hover:bg-[hsl(var(--primary))]/90">
+                <button v-if="canAdd" @click="openAddModal" class="h-9 px-4 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] inline-flex items-center gap-2 rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-[hsl(var(--primary))]/20 hover:bg-[hsl(var(--primary))]/90">
                     <Plus class="h-4 w-4" /> {{ t('departments.addDepartment') }}
                 </button>
             </div>
@@ -127,11 +131,11 @@ const deleteDept = (id) => {
                                 <span class="text-[10px] font-bold uppercase tracking-widest">{{ t('departments.label') }}</span>
                             </div>
                         </div>
-                        <div class="flex gap-1">
-                            <button @click="openEditModal(dept)" class="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] transition-colors">
+                        <div class="flex gap-1" v-if="canEdit || canDelete">
+                            <button v-if="canEdit" @click="openEditModal(dept)" class="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-edit2 h-4 w-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
                             </button>
-                            <button @click="deleteDept(dept.id)" class="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50 text-[hsl(var(--destructive))] transition-colors">
+                            <button v-if="canDelete" @click="deleteDept(dept.id)" class="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50 text-[hsl(var(--destructive))] transition-colors">
                                 <Trash2 class="h-4 w-4" />
                             </button>
                         </div>

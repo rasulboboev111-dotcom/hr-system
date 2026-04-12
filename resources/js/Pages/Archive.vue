@@ -1,11 +1,12 @@
 <script setup>
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { History, Search, Calendar, MoreVertical, Plus, ArrowUpDown, ChevronUp, ChevronDown, Trash2, Edit2 } from 'lucide-vue-next';
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from '@/lib/i18n';
 
 const { t } = useI18n();
+const page = usePage();
 
 const props = defineProps({
     employees: { type: Array, default: () => [] },
@@ -122,6 +123,9 @@ const sortedEmployees = computed(() => {
     }
     return items;
 });
+const canAdd = computed(() => page.props.auth.permissions.includes('add_archive') || page.props.auth.permissions.includes('all'));
+const canEdit = computed(() => page.props.auth.permissions.includes('edit_archive') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_archive') || page.props.auth.permissions.includes('all'));
 </script>
 
 <template>
@@ -138,7 +142,7 @@ const sortedEmployees = computed(() => {
                     <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-lg flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight">
                         <History class="h-3 w-3" /> Танҳо барои хондан
                     </div>
-                    <button @click="isModalOpen = true" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                    <button v-if="canAdd" @click="isModalOpen = true" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
                         <Plus class="h-4 w-4" /> Илова ба байгонӣ
                     </button>
                 </div>
@@ -202,10 +206,10 @@ const sortedEmployees = computed(() => {
                                                 <MoreVertical class="h-4 w-4" />
                                             </button>
                                             <div v-if="activeDropdown === emp.id" class="absolute right-0 top-8 w-44 bg-white border border-[hsl(var(--border))] rounded-xl shadow-xl z-50 py-1 overflow-hidden">
-                                                <button @click="handleEdit(emp)" class="w-full text-left px-4 py-2 hover:bg-[hsl(var(--muted))]/50 text-xs font-bold text-[hsl(var(--foreground))]/80 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                <button v-if="canEdit" @click="handleEdit(emp)" class="w-full text-left px-4 py-2 hover:bg-[hsl(var(--muted))]/50 text-xs font-bold text-[hsl(var(--foreground))]/80 flex items-center gap-2 transition-colors uppercase tracking-widest">
                                                     <Edit2 class="h-3.5 w-3.5 text-[hsl(var(--primary))]" /> Таҳрир
                                                 </button>
-                                                <button @click="handleDelete(emp)" class="w-full text-left px-4 py-2 hover:bg-red-50 text-xs font-bold text-red-600 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                <button v-if="canDelete" @click="handleDelete(emp)" class="w-full text-left px-4 py-2 hover:bg-red-50 text-xs font-bold text-red-600 flex items-center gap-2 transition-colors uppercase tracking-widest">
                                                     <Trash2 class="h-3.5 w-3.5" /> Пурра нест кардан
                                                 </button>
                                             </div>

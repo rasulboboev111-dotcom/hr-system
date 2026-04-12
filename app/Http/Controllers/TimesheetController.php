@@ -12,6 +12,9 @@ class TimesheetController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasPermission('view_timesheet')) {
+            abort(403, 'Шумо ҳуқуқи дидани ҷадвали ҳузурро надоред.');
+        }
         return Inertia::render('Timesheet', [
             'employees' => Employee::all(),
             'attendances' => Attendance::all(),
@@ -21,6 +24,10 @@ class TimesheetController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('edit_timesheet')) {
+            abort(403, 'Шумо ҳуқуқи таҳрири ҷадвали ҳузурро надоред.');
+        }
+
         $data = $request->validate([
             'employee_name' => 'required|string',
             'department' => 'nullable|string',
@@ -43,8 +50,8 @@ class TimesheetController extends Controller
         );
 
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Update Timesheet',
             'entity_type' => 'Timesheet',
             'description' => json_encode($data),
@@ -54,14 +61,18 @@ class TimesheetController extends Controller
         return redirect()->back();
     }
 
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
+        if (!$request->user()->hasPermission('export_timesheet')) {
+            abort(403, 'Шумо ҳуқуқи экспорти ҷадвали ҳузурро надоред.');
+        }
+
         $employees = Employee::all();
         $attendances = Attendance::all();
 
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Export Timesheet',
             'entity_type' => 'Timesheet',
             'description' => 'Exported timesheet data to CSV',
@@ -104,6 +115,10 @@ class TimesheetController extends Controller
 
     public function importCsv(Request $request)
     {
+        if (!$request->user()->hasPermission('import_timesheet')) {
+            abort(403, 'Шумо ҳуқуқи импорти маълумотро надоред.');
+        }
+
         $request->validate([
             'file' => 'required|file'
         ]);
@@ -111,23 +126,35 @@ class TimesheetController extends Controller
         $path = $request->file('file')->getRealPath();
         \Log::info("CSV Import started reading from: " . $path);
         
-        $lines = file($path);
-        if ($lines === false) {
-            return redirect()->back()->withErrors(['file' => 'Failed to read file.']);
+        $file = fopen($path, 'r');
+        if (!$file) {
+            return redirect()->back()->withErrors(['file' => 'Failed to open file.']);
         }
         
-        $data = array_map(function($v){return str_getcsv($v, ';');}, $lines);
-        
-        if (count($data) > 0) {
-            // Remove BOM if present on first item
-            $data[0][0] = preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $data[0][0] ?? '');
-            array_shift($data); // Remove header
+        // Detect delimiter by reading first line
+        $firstLine = fgets($file);
+        if ($firstLine === false) {
+            fclose($file);
+            return redirect()->back(); // empty file
         }
+        
+        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+        rewind($file);
+        
+        // Skip header
+        fgetcsv($file, 0, $delimiter);
+        
+        $importedCount = 0;
+        
+        while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
+            // Require name column and some data
+            if (empty($row[0]) || count($row) < 2) continue;
 
-        foreach ($data as $row) {
-            if (count($row) < 32 || empty($row[0])) continue;
-            
             $nameStr = trim($row[0]);
+            // Clean weird invisible characters from name
+            $nameStr = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $nameStr);
+            $nameStr = trim(preg_replace('/\s+/', ' ', $nameStr));
+            
             $nameParts = explode(' ', $nameStr, 2);
             $firstName = $nameParts[0];
             $lastName = $nameParts[1] ?? '';
@@ -137,20 +164,27 @@ class TimesheetController extends Controller
                 ['status' => 'Active']
             );
 
+            // Import days 1 to 31 if they exist in the row
             for ($d = 1; $d <= 31; $d++) {
-                $status = trim($row[$d] ?? '');
-                if (in_array($status, ['P', 'L', 'A'])) {
+                if (!isset($row[$d])) break;
+                
+                $status = trim($row[$d]);
+                if ($status !== '') {
                     Attendance::updateOrCreate(
                         ['employee_id' => $employee->id, 'date_key' => (string)$d],
-                        ['status' => $status]
+                        ['status' => strtoupper($status)]
                     );
+                    $importedCount++;
                 }
             }
         }
+        fclose($file);
+        
+        \Log::info("CSV Import complete. Total cells imported: " . $importedCount);
 
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Import Timesheet',
             'entity_type' => 'Timesheet',
             'description' => 'Imported timesheet data from CSV',

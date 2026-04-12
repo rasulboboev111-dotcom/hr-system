@@ -1,5 +1,5 @@
 <script setup>
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { computed, ref } from 'vue';
@@ -17,7 +17,7 @@ const props = defineProps({
         default: () => []
     }
 });
-
+const page = usePage();
 const { t } = useI18n();
 
 const searchQuery = ref('');
@@ -119,6 +119,11 @@ const deletePosition = (id) => {
     }
 };
 
+const canAdd = computed(() => page.props.auth.permissions.includes('add_positions') || page.props.auth.permissions.includes('all'));
+const canEdit = computed(() => page.props.auth.permissions.includes('edit_positions') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_positions') || page.props.auth.permissions.includes('all'));
+const canExport = computed(() => page.props.auth.permissions.includes('export_positions') || page.props.auth.permissions.includes('all'));
+
 </script>
 
 <template>
@@ -139,10 +144,10 @@ const deletePosition = (id) => {
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
+                    <button v-if="canExport" @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
                         <Download class="h-4 w-4" /> {{ t('common.export') }}
                     </button>
-                    <button @click="openAddModal" class="h-10 px-4 inline-flex items-center justify-center rounded-xl bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] font-bold text-[10px] uppercase tracking-widest hover:bg-[hsl(var(--primary))]/90 shadow-lg shadow-[hsl(var(--primary))]/20 gap-2">
+                    <button v-if="canAdd" @click="openAddModal" class="h-10 px-4 inline-flex items-center justify-center rounded-xl bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] font-bold text-[10px] uppercase tracking-widest hover:bg-[hsl(var(--primary))]/90 shadow-lg shadow-[hsl(var(--primary))]/20 gap-2">
                         <Plus class="h-4 w-4" /> {{ t('positions.addPosition') }}
                     </button>
                 </div>
@@ -242,10 +247,10 @@ const deletePosition = (id) => {
                                     <span v-else class="text-[10px] font-extrabold uppercase text-gray-600 bg-gray-100 px-2 py-1 rounded">{{ t('common.onHold') }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <button @click="openEditModal(pos)" class="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-[hsl(var(--muted))] transition-colors">
+                                    <button v-if="canEdit" @click="openEditModal(pos)" class="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-[hsl(var(--muted))] transition-colors">
                                         <Edit2 class="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                                     </button>
-                                    <button @click="deletePosition(pos.id)" class="p-2 hover:bg-rose-50 text-[hsl(var(--destructive))] rounded-lg ml-1">
+                                    <button v-if="canDelete" @click="deletePosition(pos.id)" class="p-2 hover:bg-rose-50 text-[hsl(var(--destructive))] rounded-lg ml-1">
                                         <Trash2 class="h-4 w-4" />
                                     </button>
                                 </td>

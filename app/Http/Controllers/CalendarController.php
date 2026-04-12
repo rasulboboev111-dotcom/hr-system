@@ -11,6 +11,9 @@ class CalendarController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasPermission('view_calendar')) {
+            abort(403, 'Шумо ҳуқуқи дидани тақвимро надоред.');
+        }
         return Inertia::render('Calendar', [
             'eventsList' => CalendarEvent::all()
         ]);
@@ -18,6 +21,10 @@ class CalendarController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('add_calendar_events')) {
+            abort(403, 'Шумо ҳуқуқи илова кардани ҳаводисро надоред.');
+        }
+
         $data = $request->validate([
             'title' => 'required|string',
             'date' => 'required|date',
@@ -28,8 +35,8 @@ class CalendarController extends Controller
         $event = CalendarEvent::create($data);
 
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Create Event',
             'entity_type' => 'CalendarEntry',
             'description' => json_encode($data),
@@ -39,13 +46,17 @@ class CalendarController extends Controller
         return redirect()->back();
     }
 
-    public function destroy(CalendarEvent $event)
+    public function destroy(Request $request, CalendarEvent $event)
     {
+        if (!$request->user()->hasPermission('delete_calendar_events')) {
+            abort(403, 'Шумо ҳуқуқи нест кардани ҳаводисро надоред.');
+        }
+
         $event->delete();
 
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Delete Event',
             'entity_type' => 'CalendarEntry',
             'description' => json_encode(['id' => $event->id, 'title' => $event->title]),

@@ -11,6 +11,9 @@ class PositionController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasPermission('view_positions')) {
+            abort(403, 'Шумо ҳуқуқи дидани мансабҳоро надоред.');
+        }
         $positions = Position::all()->map(function($pos) {
             $decoded = json_decode($pos->required_skills, true);
             if (is_array($decoded)) {
@@ -37,6 +40,10 @@ class PositionController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('add_positions')) {
+            abort(403, 'Шумо ҳуқуқи илова кардани мансабҳоро надоред.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'department' => 'required|string|max:255',
@@ -53,8 +60,8 @@ class PositionController extends Controller
         $pos = Position::create($validated);
         
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Create Position',
             'entity_type' => 'Position',
             'description' => json_encode(['title' => $pos->title]),
@@ -66,6 +73,10 @@ class PositionController extends Controller
 
     public function update(Request $request, Position $position)
     {
+        if (!$request->user()->hasPermission('edit_positions')) {
+            abort(403, 'Шумо ҳуқуқи таҳрир кардани мансабҳоро надоред.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'department' => 'required|string|max:255',
@@ -82,8 +93,8 @@ class PositionController extends Controller
         $position->update($validated);
 
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Update Position',
             'entity_type' => 'Position',
             'description' => json_encode(['id' => $position->id, 'title' => $position->title]),
@@ -93,15 +104,19 @@ class PositionController extends Controller
         return redirect()->back();
     }
 
-    public function destroy(Position $position)
+    public function destroy(Request $request, Position $position)
     {
+        if (!$request->user()->hasPermission('delete_positions')) {
+            abort(403, 'Шумо ҳуқуқи нест кардани мансабҳоро надоред.');
+        }
+
         $id = $position->id;
         $title = $position->title;
         $position->delete();
         
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Delete Position',
             'entity_type' => 'Position',
             'description' => json_encode(['id' => $id, 'title' => $title]),
@@ -111,13 +126,17 @@ class PositionController extends Controller
         return redirect()->back();
     }
 
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
+        if (!$request->user()->hasPermission('export_positions')) {
+            abort(403, 'Шумо ҳуқуқи экспорти маълумотро надоред.');
+        }
+
         $positions = Position::all();
 
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Export Positions',
             'entity_type' => 'Position',
             'description' => 'Exported positions data to CSV',

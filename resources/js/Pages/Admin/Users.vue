@@ -5,12 +5,23 @@ import { useI18n } from '@/lib/i18n';
 import { computed, ref } from 'vue';
 import { 
   ShieldCheck, Shield, UserPlus, Search, Edit2, Trash2, CheckCircle2, ChevronRight, Info,
-  ArrowUpDown, ChevronUp, ChevronDown
+  ArrowUpDown, ChevronUp, ChevronDown, Download, UploadCloud
 } from 'lucide-vue-next';
+import { usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
-    users: { type: Array, default: () => [] }
+    users: { type: Array, default: () => [] },
+    rolesData: { type: Object, default: () => ({ roles: [], permissions: [] }) }
 });
+
+const page = usePage();
+
+const canAdd = computed(() => page.props.auth.permissions.includes('add_users') || page.props.auth.permissions.includes('all'));
+const canEdit = computed(() => page.props.auth.permissions.includes('edit_users') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_users') || page.props.auth.permissions.includes('all'));
+const canManageRoles = computed(() => page.props.auth.permissions.includes('manage_roles') || page.props.auth.permissions.includes('all'));
+const canImport = computed(() => page.props.auth.permissions.includes('import_users') || page.props.auth.permissions.includes('all'));
+const canExport = computed(() => page.props.auth.permissions.includes('export_users') || page.props.auth.permissions.includes('all'));
 
 const { t } = useI18n();
 
@@ -21,6 +32,30 @@ const isUserModalOpen = ref(false);
 const isEditingUser = ref(false);
 const editingUserId = ref(null);
 const isAddRoleOpen = ref(false);
+const isEditingRole = ref(false);
+const editingRoleId = ref(null);
+
+const fileInputRef = ref(null);
+
+const handleExport = () => {
+    window.location.href = '/admin/users/export';
+};
+
+const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    router.post('/admin/users/import', formData, {
+        preserveScroll: true,
+        onSuccess: () => {
+            alert(t('common.importSuccess'));
+            fileInputRef.value.value = '';
+        }
+    });
+};
 
 const form = useForm({
     username: '',
@@ -31,15 +66,61 @@ const form = useForm({
     role: 'hr_mgr'
 });
 
-const roles = ref([
-    { id: 'admin', name: 'Администратор', description: 'Дастрасӣ пурра ба ҳамаи модулҳо', permissionIds: ['view_all', 'edit_all'] },
-    { id: 'hr_mgr', name: 'Мудири HR', description: 'Идораи кормандон ва давомотҳо', permissionIds: ['view_users', 'edit_users'] }
-]);
+const roleForm = useForm({
+    id: '',
+    name: '',
+    description: '',
+    permissionIds: []
+});
 
-const permissions = ref([
-    { id: 'view_all', name: 'Дидани ҳама', category: 'Умумӣ', description: 'Имкони дидани ҳамаи маълумот' },
-    { id: 'edit_all', name: 'Таҳрири ҳама', category: 'Умумӣ', description: 'Имкони таҳрири ҳамаи маълумот' }
-]);
+const openAddRoleModal = () => {
+    isEditingRole.value = false;
+    editingRoleId.value = null;
+    roleForm.reset();
+    isAddRoleOpen.value = true;
+};
+
+const openEditRoleModal = (role) => {
+    isEditingRole.value = true;
+    editingRoleId.value = role.id;
+    roleForm.id = role.id;
+    roleForm.name = role.name;
+    roleForm.description = role.description;
+    roleForm.permissionIds = [...(role.permissionIds || [])];
+    isAddRoleOpen.value = true;
+};
+
+const submitRoleForm = () => {
+    roleForm.post('/admin/roles', {
+        preserveScroll: true,
+        onSuccess: () => {
+            isAddRoleOpen.value = false;
+            roleForm.reset();
+        }
+    });
+};
+
+const handleDeleteRole = (id) => {
+    if (confirm(t('common.confirmDelete') || 'Шумо мутмаин ҳастед?')) {
+        router.delete(`/admin/roles/${id}`, {
+            preserveScroll: true
+        });
+    }
+};
+
+const roles = computed(() => {
+    return props.rolesData?.roles?.length ? props.rolesData.roles : [
+        { id: 'admin', name: 'Администратор', description: 'Дастрасӣ пурра ба ҳамаи модулҳо', permissionIds: ['view_all', 'edit_all'] },
+        { id: 'hr_mgr', name: 'Мудири HR', description: 'Идораи кормандон ва давомотҳо', permissionIds: ['view_users', 'edit_users'] }
+    ];
+});
+
+const permissions = computed(() => {
+    return props.rolesData?.permissions?.length ? props.rolesData.permissions : [
+        { id: 'view_all', name: 'Дидани ҳама', category: 'Умумӣ', description: 'Имкони дидани ҳамаи маълумот' },
+        { id: 'edit_all', name: 'Таҳрири ҳама', category: 'Умумӣ', description: 'Имкони таҳрири ҳамаи маълумот' }
+    ];
+});
 
 const searchQuery = ref('');
 
@@ -158,10 +239,17 @@ const handleDeleteUser = (id) => {
                 </div>
                 
                 <div class="flex items-center gap-3">
-                    <button @click="isAddRoleOpen = true" class="h-10 px-4 border border-[hsl(var(--border))] rounded-xl font-bold text-xs uppercase tracking-widest inline-flex items-center gap-2 hover:bg-[hsl(var(--muted))]">
+                    <input v-if="canImport" type="file" ref="fileInputRef" accept=".csv" class="hidden" @change="handleImport" />
+                    <button v-if="canImport" @click="fileInputRef.click()" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
+                        <UploadCloud class="h-4 w-4" /> Импорти CSV
+                    </button>
+                    <button v-if="canExport" @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
+                        <Download class="h-4 w-4" /> {{ t('common.export') }}
+                    </button>
+                    <button v-if="canManageRoles" @click="openAddRoleModal" class="h-10 px-4 border border-[hsl(var(--border))] rounded-xl font-bold text-xs uppercase tracking-widest inline-flex items-center gap-2 hover:bg-[hsl(var(--muted))]">
                         <Shield class="h-4 w-4" /> {{ t('admin.addRole') }}
                     </button>
-                    <button @click="openAddUserModal" class="h-10 px-4 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-xl font-bold text-xs uppercase tracking-widest inline-flex items-center gap-2 shadow-lg shadow-[hsl(var(--primary))]/20">
+                    <button v-if="canAdd" @click="openAddUserModal" class="h-10 px-4 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-xl font-bold text-xs uppercase tracking-widest inline-flex items-center gap-2 shadow-lg shadow-[hsl(var(--primary))]/20">
                         <UserPlus class="h-4 w-4" /> {{ t('admin.addUser') }}
                     </button>
                 </div>
@@ -251,7 +339,7 @@ const handleDeleteUser = (id) => {
                                         <td class="text-[hsl(var(--muted-foreground))] px-6 py-6 font-medium">{{ u.email }}</td>
                                         <td class="px-6 py-6">
                                             <div class="flex flex-wrap gap-1.5">
-                                                <span v-for="rid in (u.roleIds || ['admin'])" :key="rid" class="inline-block rounded-md text-[8px] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] px-3 py-1 uppercase font-extrabold">
+                                                <span v-for="rid in (u.role_ids || [])" :key="rid" class="inline-block rounded-md text-[8px] bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] px-3 py-1 uppercase font-extrabold">
                                                     {{ roles.find(r => r.id === rid)?.name || rid }}
                                                 </span>
                                             </div>
@@ -264,8 +352,8 @@ const handleDeleteUser = (id) => {
                                         </td>
                                         <td class="text-right px-8 py-6">
                                             <div class="inline-flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button @click="openEditUserModal(u)" class="h-9 w-9 rounded-xl hover:bg-[hsl(var(--muted))] inline-flex items-center justify-center"><Edit2 class="h-4 w-4 text-[hsl(var(--muted-foreground))]" /></button>
-                                                <button @click="handleDeleteUser(u.id)" class="h-9 w-9 rounded-xl hover:bg-rose-50 hover:text-rose-600 inline-flex items-center justify-center"><Trash2 class="h-4 w-4" /></button>
+                                                <button v-if="canEdit" @click="openEditUserModal(u)" class="h-9 w-9 rounded-xl hover:bg-[hsl(var(--muted))] inline-flex items-center justify-center"><Edit2 class="h-4 w-4 text-[hsl(var(--muted-foreground))]" /></button>
+                                                <button v-if="canDelete" @click="handleDeleteUser(u.id)" class="h-9 w-9 rounded-xl hover:bg-rose-50 hover:text-rose-600 inline-flex items-center justify-center"><Trash2 class="h-4 w-4" /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -286,8 +374,14 @@ const handleDeleteUser = (id) => {
                                         <h3 class="text-base font-extrabold uppercase tracking-widest text-[hsl(var(--primary))]">{{ role.name }}</h3>
                                         <p class="text-xs leading-relaxed font-medium line-clamp-2 text-[hsl(var(--muted-foreground))]">{{ role.description }}</p>
                                     </div>
-                                    <div class="h-12 w-12 rounded-2xl bg-[hsl(var(--primary))]/5 flex items-center justify-center shadow-inner shrink-0">
-                                        <Shield class="h-6 w-6 text-[hsl(var(--primary))]" />
+                                    <div class="flex items-center gap-2">
+                                        <div v-if="canManageRoles && role.id !== 'admin'" class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity mr-2">
+                                            <button @click="openEditRoleModal(role)" class="h-8 w-8 rounded-lg hover:bg-[hsl(var(--muted))] inline-flex items-center justify-center"><Edit2 class="h-3.5 w-3.5" /></button>
+                                            <button @click="handleDeleteRole(role.id)" class="h-8 w-8 rounded-lg hover:bg-rose-50 hover:text-rose-600 inline-flex items-center justify-center"><Trash2 class="h-3.5 w-3.5" /></button>
+                                        </div>
+                                        <div class="h-12 w-12 rounded-2xl bg-[hsl(var(--primary))]/5 flex items-center justify-center shadow-inner shrink-0">
+                                            <Shield class="h-6 w-6 text-[hsl(var(--primary))]" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -398,8 +492,7 @@ const handleDeleteUser = (id) => {
                     <div class="space-y-1.5">
                         <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('admin.roles') }}</label>
                         <select v-model="form.role" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
-                            <option value="hr_mgr">Мудири HR</option>
-                            <option value="admin">Администратор</option>
+                            <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.name }}</option>
                         </select>
                     </div>
                     
@@ -413,5 +506,52 @@ const handleDeleteUser = (id) => {
             </div>
         </div>
         <div v-if="isUserModalOpen" @click="isUserModalOpen = false" class="fixed inset-0 z-40"></div>
-    </AppLayout>
+
+        <!-- Add Role Modal -->
+        <div v-if="isAddRoleOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div class="bg-[hsl(var(--card))] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-[hsl(var(--border))] relative z-50">
+                <div class="p-6 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/10 flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-2xl bg-[hsl(var(--primary))]/10 flex items-center justify-center">
+                        <Shield class="h-6 w-6 text-[hsl(var(--primary))]" />
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">{{ isEditingRole ? 'Таҳрири нақш' : (t('admin.addRole') || 'Иловаи Нақш') }}</h2>
+                        <p class="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold tracking-widest mt-1">
+                            {{ isEditingRole ? 'Маълумоти нақшро иваз кунед' : 'Нақши навро эҷод кунед' }}
+                        </p>
+                    </div>
+                </div>
+                <form @submit.prevent="submitRoleForm" class="p-6 space-y-5">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Идентификатор (Масалан: admin)</label>
+                        <input v-model="roleForm.id" type="text" required :disabled="isEditingRole" :class="isEditingRole ? 'bg-[hsl(var(--muted))]/50' : ''" class="h-11 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Номи Нақш</label>
+                        <input v-model="roleForm.name" type="text" required class="h-11 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Тавсиф</label>
+                        <input v-model="roleForm.description" type="text" class="h-11 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Ҳуқуқҳои дастрасӣ (Permission IDs)</label>
+                        <div class="h-32 overflow-y-auto border border-[hsl(var(--border))] rounded-xl p-3 bg-transparent">
+                            <label v-for="p in permissions" :key="p.id" class="flex items-center gap-2 mb-2 cursor-pointer">
+                                <input type="checkbox" v-model="roleForm.permissionIds" :value="p.id" class="rounded border-[hsl(var(--border))] text-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]" />
+                                <span class="text-sm">{{ p.name }} ({{ p.id }})</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4 flex gap-3">
+                        <button type="button" @click="isAddRoleOpen = false" class="flex-1 h-10 rounded-lg text-xs font-bold text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] uppercase tracking-widest transition-colors">{{ t('common.cancel') }}</button>
+                        <button type="submit" :disabled="roleForm.processing" class="flex-1 h-10 rounded-lg text-xs font-bold bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90 disabled:opacity-50 uppercase tracking-widest shadow-lg shadow-[hsl(var(--primary))]/20 transition-all">
+                            {{ t('common.save') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div v-if="isAddRoleOpen" @click="isAddRoleOpen = false" class="fixed inset-0 z-40"></div>    </AppLayout>
 </template>

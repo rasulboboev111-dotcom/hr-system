@@ -1,14 +1,15 @@
 <script setup>
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { Clock, CalendarDays, Plus, Trash2 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
     shifts: Array
 });
 
+const page = usePage();
 const { t } = useI18n();
 
 const isAddShiftOpen = ref(false);
@@ -38,6 +39,10 @@ const handleDeleteShift = (shiftId) => {
 const handleExport = () => {
     window.location.href = '/schedule/export';
 };
+
+const canAdd = computed(() => page.props.auth.permissions.includes('add_schedule') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_schedule') || page.props.auth.permissions.includes('all'));
+const canExport = computed(() => page.props.auth.permissions.includes('export_schedule') || page.props.auth.permissions.includes('all'));
 </script>
 
 <template>
@@ -50,7 +55,7 @@ const handleExport = () => {
                     <h1 class="text-2xl font-bold tracking-tight">{{ t('schedule.title') }}</h1>
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('schedule.subtitle') }}</p>
                 </div>
-                <div>
+                <div v-if="canAdd">
                     <button @click="isAddShiftOpen = true" class="h-9 px-3 inline-flex items-center gap-2 text-[10px] font-bold uppercase bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg shadow-sm hover:opacity-90 transition-opacity">
                         <Plus class="h-4 w-4" /> {{ t('common.add') }}
                     </button>
@@ -79,7 +84,7 @@ const handleExport = () => {
                                 <Clock class="h-4 w-4 opacity-50" />
                                 {{ shift.shift_type }}
                             </div>
-                            <button @click="handleDeleteShift(shift.id)" class="opacity-0 group-hover:opacity-100 shrink-0 h-8 w-8 flex items-center justify-center rounded-xl bg-white hover:bg-rose-50 text-slate-300 hover:text-rose-500 transition-all shadow-sm border border-[hsl(var(--border))]">
+                            <button v-if="canDelete" @click="handleDeleteShift(shift.id)" class="opacity-0 group-hover:opacity-100 shrink-0 h-8 w-8 flex items-center justify-center rounded-xl bg-white hover:bg-rose-50 text-slate-300 hover:text-rose-500 transition-all shadow-sm border border-[hsl(var(--border))]">
                                 <Trash2 class="h-3.5 w-3.5" />
                             </button>
                         </div>

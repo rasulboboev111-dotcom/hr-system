@@ -13,6 +13,9 @@ class PayrollController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasPermission('view_payroll')) {
+            abort(403, 'Шумо ҳуқуқи дидани маошро надоред.');
+        }
         return Inertia::render('Payroll', [
             'employees' => Employee::all(),
             'payroll_records' => PayrollRecord::all()
@@ -21,6 +24,10 @@ class PayrollController extends Controller
 
     public function storeBonus(Request $request)
     {
+        if (!$request->user()->hasPermission('add_payroll')) {
+            abort(403, 'Шумо ҳуқуқи илова кардани маълумоти маошро надоред.');
+        }
+
         $data = $request->validate([
             'employee_name' => 'required|string',
             'role' => 'nullable|string',
@@ -56,8 +63,8 @@ class PayrollController extends Controller
         );
 
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Update Bonus',
             'entity_type' => 'Payroll',
             'description' => json_encode($data),
@@ -67,13 +74,17 @@ class PayrollController extends Controller
         return redirect()->back();
     }
 
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
+        if (!$request->user()->hasPermission('export_payroll')) {
+            abort(403, 'Шумо ҳуқуқи экспорти маълумоти маошро надоред.');
+        }
+
         $employees = Employee::all();
 
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Export Payroll',
             'entity_type' => 'Payroll',
             'description' => 'Exported payroll data to CSV'

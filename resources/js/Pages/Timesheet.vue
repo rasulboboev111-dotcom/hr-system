@@ -1,5 +1,5 @@
 <script setup>
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { ref, onMounted, computed } from 'vue';
@@ -13,7 +13,7 @@ const props = defineProps({
     attendances: { type: Array, default: () => [] },
     departments: { type: Array, default: () => [] }
 });
-
+const page = usePage();
 const { t } = useI18n();
 
 
@@ -127,6 +127,7 @@ const handleImport = (e) => {
 };
 
 const toggleAttendance = (empId, day) => {
+    if (!canEdit.value) return;
     const isWeekend = day % 7 === 0 || day % 7 === 6;
     if (isWeekend) return;
     
@@ -141,6 +142,10 @@ const toggleAttendance = (empId, day) => {
         status: nextStatus
     }, { preserveScroll: true });
 };
+
+const canEdit = computed(() => page.props.auth.permissions.includes('edit_timesheet') || page.props.auth.permissions.includes('all'));
+const canImport = computed(() => page.props.auth.permissions.includes('import_timesheet') || page.props.auth.permissions.includes('all'));
+const canExport = computed(() => page.props.auth.permissions.includes('export_timesheet') || page.props.auth.permissions.includes('all'));
 
 </script>
 
@@ -159,17 +164,17 @@ const toggleAttendance = (empId, day) => {
                         <option value="">{{ t('common.all') || 'Все отделы' }}</option>
                         <option v-for="dept in departments" :key="dept.id" :value="dept.name">{{ dept.name }}</option>
                     </select>
-                    <button @click="isAddOpen = true" class="h-9 px-3 inline-flex items-center gap-2 border border-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/5 uppercase font-bold text-[10px] rounded-lg">
+                    <button v-if="canEdit" @click="isAddOpen = true" class="h-9 px-3 inline-flex items-center gap-2 border border-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/5 uppercase font-bold text-[10px] rounded-lg">
                         <Plus class="h-4 w-4" /> {{ t('common.add') }}
                     </button>
-                    <button @click="fileInput.click()" class="h-9 px-3 inline-flex items-center gap-2 text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 uppercase font-bold text-[10px] rounded-lg">
+                    <button v-if="canImport" @click="fileInput.click()" class="h-9 px-3 inline-flex items-center gap-2 text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 uppercase font-bold text-[10px] rounded-lg">
                         <Upload class="h-4 w-4" /> {{ t('common.import') }}
                     </button>
-                    <input type="file" ref="fileInput" class="hidden" accept=".csv" @change="handleImport" />
-                    <button @click="handleExport" class="h-9 px-3 inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 uppercase font-bold text-[10px] rounded-lg">
+                    <input v-if="canImport" type="file" ref="fileInput" class="hidden" accept=".csv" @change="handleImport" />
+                    <button v-if="canExport" @click="handleExport" class="h-9 px-3 inline-flex items-center gap-2 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 uppercase font-bold text-[10px] rounded-lg">
                         <FileSpreadsheet class="h-4 w-4" /> {{ t('common.export') }}
                     </button>
-                    <button @click="handleConfirmTimesheet" class="h-9 px-3 inline-flex items-center gap-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm uppercase font-bold text-[10px] rounded-lg">
+                    <button v-if="canEdit" @click="handleConfirmTimesheet" class="h-9 px-3 inline-flex items-center gap-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm uppercase font-bold text-[10px] rounded-lg">
                         <ShieldCheck class="h-4 w-4" /> {{ t('timesheet.confirm') }}
                     </button>
                 </div>
@@ -241,7 +246,7 @@ const toggleAttendance = (empId, day) => {
                             <tr v-for="emp in activeEmployees" :key="emp.id" class="hover:bg-[hsl(var(--primary))]/[0.02] transition-colors">
                                 <td class="p-3 border-r border-[hsl(var(--border))] sticky left-0 bg-white z-10">
                                     <div class="flex flex-col">
-                                        <span class="text-[11px] font-bold uppercase truncate">{{ emp.first_name }} {{ emp.last_name }}</span>
+                                        <span class="text-[11px] font-bold uppercase truncate">{{ emp.name }} {{ emp.last_name }}</span>
                                         <span class="text-[9px] text-[hsl(var(--muted-foreground))] font-medium uppercase tracking-tighter">{{ emp.department?.name || emp.department }}</span>
                                     </div>
                                 </td>

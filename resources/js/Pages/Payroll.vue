@@ -1,5 +1,5 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
@@ -15,7 +15,7 @@ const props = defineProps({
   employees: { type: Array, default: () => [] },
   payroll_records: { type: Array, default: () => [] }
 });
-
+const page = usePage();
 const { t, language } = useI18n();
 
 
@@ -148,6 +148,11 @@ const handleDelete = (emp) => {
         // Implement delete
     }
 };
+
+const canAdd = computed(() => page.props.auth.permissions.includes('add_payroll') || page.props.auth.permissions.includes('all'));
+const canEdit = computed(() => page.props.auth.permissions.includes('edit_payroll') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_payroll') || page.props.auth.permissions.includes('all'));
+const canExport = computed(() => page.props.auth.permissions.includes('export_payroll') || page.props.auth.permissions.includes('all'));
 </script>
 
 <template>
@@ -160,12 +165,12 @@ const handleDelete = (emp) => {
                     <h1 class="text-2xl font-bold tracking-tight">{{ t('payroll.title') }}</h1>
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('payroll.subtitle') }}</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button @click="handleExport" class="h-9 px-3 border border-[hsl(var(--border))] rounded-lg inline-flex items-center justify-center gap-2 uppercase font-bold text-[10px] tracking-widest hover:bg-[hsl(var(--muted))]">
+                 <div class="flex items-center gap-2">
+                    <button v-if="canExport" @click="handleExport" class="h-9 px-3 border border-[hsl(var(--border))] rounded-lg inline-flex items-center justify-center gap-2 uppercase font-bold text-[10px] tracking-widest hover:bg-[hsl(var(--muted))]">
                         <Download class="h-4 w-4" /> {{ t('common.export') }}
                     </button>
                     
-                    <button @click="isAddOpen = true" class="h-9 px-3 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg inline-flex items-center justify-center gap-2 uppercase font-bold text-[10px] tracking-widest shadow-sm">
+                    <button v-if="canAdd" @click="isAddOpen = true" class="h-9 px-3 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg inline-flex items-center justify-center gap-2 uppercase font-bold text-[10px] tracking-widest shadow-sm">
                         <Plus class="h-4 w-4" /> {{ t('payroll.paid') }}
                     </button>
                 </div>
@@ -267,10 +272,10 @@ const handleDelete = (emp) => {
                                                 <MoreVertical class="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                                             </button>
                                             <div v-if="activeDropdown === emp.id" class="absolute right-0 top-8 w-36 bg-white border border-[hsl(var(--border))] rounded-xl shadow-xl z-50 py-1 overflow-hidden">
-                                                <button @click="handleEdit(emp)" class="w-full text-left px-4 py-2.5 hover:bg-[hsl(var(--muted))]/50 text-[11px] font-bold text-[hsl(var(--foreground))]/80 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                <button v-if="canEdit" @click="handleEdit(emp)" class="w-full text-left px-4 py-2.5 hover:bg-[hsl(var(--muted))]/50 text-[11px] font-bold text-[hsl(var(--foreground))]/80 flex items-center gap-2 transition-colors uppercase tracking-widest">
                                                     <Edit2 class="h-3.5 w-3.5 text-[hsl(var(--primary))]" /> {{ t('common.edit') || 'Edit' }}
                                                 </button>
-                                                <button @click="handleDelete(emp)" class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-[11px] font-bold text-red-600 flex items-center gap-2 transition-colors uppercase tracking-widest">
+                                                <button v-if="canDelete" @click="handleDelete(emp)" class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-[11px] font-bold text-red-600 flex items-center gap-2 transition-colors uppercase tracking-widest">
                                                     <Trash2 class="h-3.5 w-3.5" /> {{ t('common.delete') || 'Delete' }}
                                                 </button>
                                             </div>

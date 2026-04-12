@@ -10,6 +10,9 @@ class EmployeeController extends Controller
 {
     public function index(Request $request)
     {
+        if (!$request->user()->hasPermission('view_employees')) {
+            abort(403, 'Шумо ҳуқуқи дидани кормандонро надоред.');
+        }
         $query = Employee::query();
 
         if ($request->filled('search')) {
@@ -39,6 +42,10 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('add_employees')) {
+            abort(403, 'Шумо ҳуқуқи илова кардани кормандонро надоред.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -56,6 +63,10 @@ class EmployeeController extends Controller
 
     public function update(Request $request, Employee $employee)
     {
+        if (!$request->user()->hasPermission('edit_employees')) {
+            abort(403, 'Шумо ҳуқуқи таҳрир кардани кормандонро надоред.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -69,14 +80,22 @@ class EmployeeController extends Controller
         return redirect()->back();
     }
 
-    public function destroy(Employee $employee)
+    public function destroy(Request $request, Employee $employee)
     {
+        if (!$request->user()->hasPermission('delete_employees')) {
+            abort(403, 'Шумо ҳуқуқи нест кардани кормандонро надоред.');
+        }
+
         $employee->delete();
         return redirect()->back();
     }
 
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
+        if (!$request->user()->hasPermission('export_employees')) {
+            abort(403, 'Шумо ҳуқуқи экспорти маълумотро надоред.');
+        }
+
         $employees = Employee::all();
 
         \App\Models\AuditLog::create([
@@ -115,6 +134,10 @@ class EmployeeController extends Controller
 
     public function importCsv(Request $request)
     {
+        if (!$request->user()->hasPermission('import_employees')) {
+            abort(403, 'Шумо ҳуқуқи импорти маълумотро надоред.');
+        }
+
         $request->validate([
             'file' => 'required|mimes:csv,txt'
         ]);

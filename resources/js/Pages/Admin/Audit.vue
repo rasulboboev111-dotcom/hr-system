@@ -7,21 +7,17 @@ import {
   Calendar, ShieldCheck, ShieldAlert, Loader2
 } from 'lucide-vue-next';
 
-// We can accept audit logs from the backend someday, for now we can mock them based on the exact same UI structure.
 const props = defineProps({
-    auditLogs: { type: Array, default: () => [] }
+    logs: { type: Object, default: () => ({ data: [], links: [] }) }
 });
 
 const { t } = useI18n();
 
-const logs = props.auditLogs.length ? props.auditLogs : [
-    { id: 1, userId: 'user_123', userName: 'admin', action: 'create', entityType: 'user', description: 'Created user @john', timestamp: new Date().toISOString() },
-    { id: 2, userId: 'user_123', userName: 'admin', action: 'update', entityType: 'employee', description: 'Updated salary for emp_456', timestamp: new Date(Date.now() - 3600000).toISOString() }
-];
-
 const getActionClass = (action) => {
-    if (action === 'create') return "bg-emerald-50 text-emerald-700";
-    if (action === 'delete') return "bg-rose-50 text-rose-700";
+    const act = String(action).toLowerCase();
+    if (act.includes('create') || act.includes('add') || act.includes('import')) return "bg-emerald-50 text-emerald-700";
+    if (act.includes('delete') || act.includes('destroy')) return "bg-rose-50 text-rose-700";
+    if (act.includes('update') || act.includes('edit')) return "bg-amber-50 text-amber-700";
     return "bg-blue-50 text-blue-700";
 };
 </script>
@@ -47,15 +43,15 @@ const getActionClass = (action) => {
             <div class="grid gap-4 md:grid-cols-3">
                 <div class="border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm rounded-xl p-6">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-2">{{ t('common.all').toUpperCase() }} ACTIONS</p>
-                    <h3 class="text-2xl font-bold">{{ logs.length }}</h3>
+                    <h3 class="text-2xl font-bold">{{ logs.total || logs.data?.length || 0 }}</h3>
                 </div>
                 <div class="border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm rounded-xl p-6">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-2">TODAY</p>
-                    <h3 class="text-2xl font-bold">{{ logs.length }}</h3>
+                    <h3 class="text-2xl font-bold">{{ logs.data?.filter(l => new Date(l.timestamp).toDateString() === new Date().toDateString()).length || 0 }}</h3>
                 </div>
                 <div class="border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-sm rounded-xl p-6">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-2">ACTIVE USERS</p>
-                    <h3 class="text-2xl font-bold">{{ new Set(logs.map(l => l.userId)).size }}</h3>
+                    <h3 class="text-2xl font-bold">{{ new Set(logs.data?.map(l => l.user_id)).size || 0 }}</h3>
                 </div>
             </div>
 
@@ -78,15 +74,15 @@ const getActionClass = (action) => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="log in logs" :key="log.id" class="text-[11px] group hover:bg-[hsl(var(--primary))]/[0.02] border-b border-[hsl(var(--border))] last:border-0">
+                            <tr v-for="log in logs.data" :key="log.id" class="text-[11px] group hover:bg-[hsl(var(--primary))]/[0.02] border-b border-[hsl(var(--border))] last:border-0">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="h-8 w-8 rounded-full bg-[hsl(var(--primary))]/10 flex items-center justify-center font-bold text-[hsl(var(--primary))] text-[10px]">
-                                            {{ log.userName ? log.userName[0].toUpperCase() : 'U' }}
+                                            {{ log.user_name ? log.user_name[0].toUpperCase() : 'U' }}
                                         </div>
                                         <div>
-                                            <p class="font-bold text-[hsl(var(--foreground))]/80">{{ log.userName }}</p>
-                                            <p class="text-[9px] text-[hsl(var(--muted-foreground))] font-mono">{{ log.userId.substring(0, 8) }}...</p>
+                                            <p class="font-bold text-[hsl(var(--foreground))]/80">{{ log.user_name }}</p>
+                                            <p class="text-[9px] text-[hsl(var(--muted-foreground))] font-mono">{{ String(log.user_id).substring(0, 8) }}...</p>
                                         </div>
                                     </div>
                                 </td>
@@ -98,7 +94,7 @@ const getActionClass = (action) => {
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
                                         <Activity class="h-3.5 w-3.5 text-[hsl(var(--muted-foreground))]/60" />
-                                        <span class="font-bold text-[hsl(var(--foreground))]/70">{{ t(`audit.entities.${log.entityType}`) || log.entityType }}</span>
+                                        <span class="font-bold text-[hsl(var(--foreground))]/70">{{ t(`audit.entities.${log.entity_type}`) || log.entity_type }}</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-[hsl(var(--muted-foreground))] italic">{{ log.description }}</td>

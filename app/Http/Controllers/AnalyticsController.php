@@ -11,10 +11,15 @@ class AnalyticsController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasPermission('view_analytics')) {
+            abort(403, 'Шумо ҳуқуқи дидани таҳлилро надоред.');
+        }
         $employees = Employee::all();
 
         // 1. Department Distribution (Pie Chart)
-        $deptCounts = $employees->groupBy('department')->map->count();
+        $deptCounts = $employees->groupBy('department')->map(function ($items) {
+            return $items->count();
+        });
         $deptLabels = $deptCounts->keys()->toArray();
         $deptDataValues = $deptCounts->values()->toArray();
 

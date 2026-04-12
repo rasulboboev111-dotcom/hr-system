@@ -36,6 +36,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', function () { return Inertia::render('Profile'); });
 
     Route::get('/archive', function (\Illuminate\Http\Request $request) { 
+        if (!$request->user()->hasPermission('view_archive') && !$request->user()->hasPermission('view_all') && !$request->user()->hasPermission('all')) {
+            abort(403, 'Шумо ҳуқуқи дидани архивро надоред.');
+        }
+
         $query = \App\Models\Employee::onlyTrashed();
 
         if ($request->filled('search')) {
@@ -57,6 +61,10 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::post('/archive', function (\Illuminate\Http\Request $request) {
+        if (!$request->user()->hasPermission('add_archive') && !$request->user()->hasPermission('edit_all') && !$request->user()->hasPermission('all')) {
+            abort(403, 'Шумо ҳуқуқи илова ба архивро надоред.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -74,6 +82,10 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::put('/archive/{id}', function (\Illuminate\Http\Request $request, $id) {
+        if (!$request->user()->hasPermission('edit_archive') && !$request->user()->hasPermission('edit_all') && !$request->user()->hasPermission('all')) {
+            abort(403, 'Шумо ҳуқуқи таҳрири архивро надоред.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -88,7 +100,11 @@ Route::middleware('auth')->group(function () {
         return redirect()->back();
     });
 
-    Route::delete('/archive/{id}', function ($id) {
+    Route::delete('/archive/{id}', function (\Illuminate\Http\Request $request, $id) {
+        if (!$request->user()->hasPermission('delete_archive') && !$request->user()->hasPermission('edit_all') && !$request->user()->hasPermission('all')) {
+            abort(403, 'Шумо ҳуқуқи тозакунии архивро надоред.');
+        }
+
         $employee = \App\Models\Employee::withTrashed()->findOrFail($id);
         $employee->forceDelete();
         return redirect()->back();
@@ -116,6 +132,11 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminController::class, 'usersIndex']);
+        Route::post('/roles', [\App\Http\Controllers\AdminController::class, 'storeRole']);
+        Route::delete('/roles/{id}', [\App\Http\Controllers\AdminController::class, 'destroyRole']);
+        Route::post('/permissions', [\App\Http\Controllers\AdminController::class, 'storePermission']);
+        Route::get('/users/export', [\App\Http\Controllers\AdminController::class, 'exportCsv']);
+        Route::post('/users/import', [\App\Http\Controllers\AdminController::class, 'importCsv']);
         Route::post('/users', [\App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::put('/users/{user}', [\App\Http\Controllers\AdminController::class, 'updateUser']);
         Route::delete('/users/{user}', [\App\Http\Controllers\AdminController::class, 'destroyUser']);

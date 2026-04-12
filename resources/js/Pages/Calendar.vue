@@ -2,7 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import { 
     Clock, Calendar as CalendarIcon, Users, Plus, Filter, 
@@ -15,7 +15,7 @@ const props = defineProps({
         default: () => []
     }
 });
-
+const page = usePage();
 const { t } = useI18n();
 
 const HOLIDAYS = {
@@ -127,6 +127,9 @@ const handleDeleteEvent = (id) => {
         router.delete(`/calendar/events/${id}`, { preserveScroll: true });
     }
 };
+
+const canAdd = computed(() => page.props.auth.permissions.includes('add_calendar_events') || page.props.auth.permissions.includes('all'));
+const canDelete = computed(() => page.props.auth.permissions.includes('delete_calendar_events') || page.props.auth.permissions.includes('all'));
 </script>
 
 <template>
@@ -139,7 +142,7 @@ const handleDeleteEvent = (id) => {
                     <h1 class="text-2xl font-bold tracking-tight">{{ t('calendar.title') }}</h1>
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('calendar.subtitle') }}</p>
                 </div>
-                <div class="flex gap-2">
+                <div v-if="canAdd" class="flex gap-2">
                     <button @click="isAddOpen = true" class="h-9 px-3 inline-flex items-center gap-2 text-[11px] font-bold uppercase bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg shadow-sm">
                         <Plus class="h-4 w-4" /> {{ t('calendar.newEvent') }}
                     </button>
@@ -224,7 +227,7 @@ const handleDeleteEvent = (id) => {
                                             <span class="text-[9px] font-extrabold border-none px-3 py-1 uppercase bg-[hsl(var(--muted))] rounded-md">
                                                 {{ event.type }}
                                             </span>
-                                            <button @click="handleDeleteEvent(event.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-md transition-colors opacity-0 group-hover:opacity-100">
+                                            <button v-if="canDelete" @click="handleDeleteEvent(event.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-md transition-colors opacity-0 group-hover:opacity-100">
                                                 <Trash2 class="h-3.5 w-3.5" />
                                             </button>
                                         </div>

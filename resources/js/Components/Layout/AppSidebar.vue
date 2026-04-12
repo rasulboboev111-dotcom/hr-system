@@ -1,14 +1,15 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, provide } from 'vue';
 import { useI18n } from '@/lib/i18n';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { 
     LayoutDashboard, Users, UserSquare2, Building2, UserPlus, 
     Clock, Calendar as CalendarIcon, CalendarDays, CalendarClock, 
     Banknote, FileText, Settings, ShieldCheck, History, X, ChevronRight
 } from 'lucide-vue-next';
 
-const canViewAdmin = true;
+const page = usePage();
+const canViewAdmin = computed(() => page.props.auth.user?.role_ids?.includes('admin'));
 const { t } = useI18n();
 
 const props = defineProps({
@@ -62,7 +63,7 @@ const navigation = computed(() => {
         }
     ];
 
-    if (canViewAdmin) {
+    if (canViewAdmin.value) {
         defaultNav.push({
             title: t('menu.admin'),
             icon: ShieldCheck,
