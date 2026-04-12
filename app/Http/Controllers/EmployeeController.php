@@ -139,28 +139,62 @@ class EmployeeController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|mimes:csv,txt'
+            'file' => 'required|file'
         ]);
 
-        $file = $request->file('file');
-        $csvData = file_get_contents($file);
-        $rows = array_map("str_getcsv", explode("\n", $csvData));
-        $header = array_shift($rows);
+        $path = $request->file('file')->getRealPath();
+        $file = fopen($path, 'r');
+        if (!$file) return redirect()->back()->withErrors(['file' => 'Failed to open file.']);
 
-        foreach ($rows as $row) {
-            if (count($row) >= 6) {
-                Employee::updateOrCreate(
-                    ['email' => $row[3]], // assuming email is unique and at index 3
-                    [
-                        'name' => $row[1],
-                        'last_name' => $row[2],
-                        'role' => $row[4],
-                        'department' => $row[5],
-                        'status' => $row[6] ?? 'active'
-                    ]
-                );
+        // Detect delimiter and handle BOM
+        $firstLine = fgets($file);
+        if ($firstLine === false) {
+            fclose($file);
+            return redirect()->back();
+        }
+
+        // Strip BOM
+        $bom = pack('H*', 'EFBBBF');
+        $firstLine = preg_replace("/^$bom/", '', $firstLine);
+        
+        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+        rewind($file);
+        
+        // Skip header
+        fgetcsv($file, 0, $delimiter);
+
+        while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
+            // Clean weird characters and trim
+            $cleanRow = array_map(function($val) {
+                if ($val === null) return '';
+                $val = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $val);
+                return trim(preg_replace('/\s+/', ' ', $val));
+            }, $row);
+
+            if (count($cleanRow) >= 6 && !empty($cleanRow[3])) { // row[3] is email
+                $emp = Employee::withTrashed()->where('email', $cleanRow[3])->first();
+                if ($emp) {
+                    $emp->restore();
+                    $emp->update([
+                        'name' => $cleanRow[1],
+                        'last_name' => $cleanRow[2],
+                        'role' => $cleanRow[4],
+                        'department' => $cleanRow[5],
+                        'status' => $cleanRow[6] ?? 'active'
+                    ]);
+                } else {
+                    Employee::create([
+                        'email' => $cleanRow[3],
+                        'name' => $cleanRow[1],
+                        'last_name' => $cleanRow[2],
+                        'role' => $cleanRow[4],
+                        'department' => $cleanRow[5],
+                        'status' => $cleanRow[6] ?? 'active'
+                    ]);
+                }
             }
         }
+        fclose($file);
 
         \App\Models\AuditLog::create([
             'user_id' => 'system',

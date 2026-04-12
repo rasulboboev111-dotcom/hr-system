@@ -247,38 +247,53 @@ class AdminController extends Controller
 
     public function importCsv(Request $request)
     {
+        if (!$request->user()->hasPermission('add_users')) {
+            abort(403, 'Шумо ҳуқуқи иловаи корбаронро надоред.');
+        }
+
         $request->validate([
-            'file' => 'required|mimes:csv,txt'
+            'file' => 'required|file'
         ]);
 
-        $file = $request->file('file');
-        $csvData = file_get_contents($file);
-        
-        $bom = pack('H*','EFBBBF');
-        $csvData = preg_replace("/^$bom/", '', $csvData);
-        
-        $lines = explode("\n", $csvData);
-        if (count($lines) < 2) return redirect()->back(); // empty or just header
-        
-        $separator = strpos($lines[0], ';') !== false ? ';' : ',';
-        
-        $rows = array_map(function($line) use ($separator) {
-            return str_getcsv($line, $separator);
-        }, $lines);
-        
-        array_shift($rows);
+        $path = $request->file('file')->getRealPath();
+        $file = fopen($path, 'r');
+        if (!$file) return redirect()->back()->withErrors(['file' => 'Failed to open file.']);
 
-        foreach ($rows as $r) {
-            if (count($r) < 5 || empty(trim($r[1] ?? ''))) {
+        // Detect delimiter and handle BOM
+        $firstLine = fgets($file);
+        if ($firstLine === false) {
+            fclose($file);
+            return redirect()->back();
+        }
+
+        // Strip BOM
+        $bom = pack('H*', 'EFBBBF');
+        $firstLine = preg_replace("/^$bom/", '', $firstLine);
+        
+        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+        rewind($file);
+        
+        // Skip header
+        fgetcsv($file, 0, $delimiter);
+
+        while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
+            // Clean and trim
+            $cleanRow = array_map(function($val) {
+                if ($val === null) return '';
+                $val = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $val);
+                return trim(preg_replace('/\s+/', ' ', $val));
+            }, $row);
+
+            if (count($cleanRow) < 5 || empty($cleanRow[1])) {
                 continue;
             }
             
-            $username = trim($r[1]);
-            $firstName = trim($r[2] ?? '');
-            $lastName = trim($r[3] ?? '');
-            $email = trim($r[4] ?? '');
-            $roleStr = trim($r[5] ?? '');
-            $roleIds = array_filter(explode(',', $roleStr));
+            $username = $cleanRow[1];
+            $firstName = $cleanRow[2];
+            $lastName = $cleanRow[3];
+            $email = $cleanRow[4];
+            $roleStr = $cleanRow[5] ?? '';
+            $roleIds = array_filter(array_map('trim', explode(',', $roleStr)));
             if (empty($roleIds)) $roleIds = ['hr_mgr'];
 
             if (!empty($email) && !empty($username)) {
@@ -301,6 +316,7 @@ class AdminController extends Controller
                 }
             }
         }
+        fclose($file);
 
         AuditLog::create([
             'user_id' => $request->user()->id,

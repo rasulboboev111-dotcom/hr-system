@@ -93,13 +93,16 @@ class TimesheetController extends Controller
             $header[] = 'Соатҳои умумӣ';
             fputcsv($file, $header, ';');
 
-            foreach ($employees->filter(fn($e) => $e->status !== 'Retired') as $emp) {
+            foreach ($employees as $emp) {
+                // Skip retired employees (case-insensitive check)
+                if (strtolower($emp->status) === 'retired') continue;
+
                 $row = [($emp->name) . ' ' . ($emp->last_name ?? '')];
                 $presentDays = 0;
                 for ($d = 1; $d <= 31; $d++) {
                     $status = $attMap[$emp->id][$d] ?? '';
                     $row[] = $status;
-                    if ($status === 'P') $presentDays++;
+                    if (strtoupper($status) === 'P') $presentDays++;
                 }
                 $row[] = $presentDays * 8;
                 fputcsv($file, $row, ';');
@@ -131,12 +134,16 @@ class TimesheetController extends Controller
             return redirect()->back()->withErrors(['file' => 'Failed to open file.']);
         }
         
-        // Detect delimiter by reading first line
+        // Detect delimiter and handle BOM
         $firstLine = fgets($file);
         if ($firstLine === false) {
             fclose($file);
             return redirect()->back(); // empty file
         }
+        
+        // Strip BOM
+        $bom = pack('H*', 'EFBBBF');
+        $firstLine = preg_replace("/^$bom/", '', $firstLine);
         
         $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
         rewind($file);
@@ -147,14 +154,17 @@ class TimesheetController extends Controller
         $importedCount = 0;
         
         while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
-            // Require name column and some data
-            if (empty($row[0]) || count($row) < 2) continue;
+            // Clean and trim
+            $cleanRow = array_map(function($val) {
+                if ($val === null) return '';
+                // Clean weird characters and normalize spaces
+                $val = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $val);
+                return trim(preg_replace('/\s+/', ' ', $val));
+            }, $row);
 
-            $nameStr = trim($row[0]);
-            // Clean weird invisible characters from name
-            $nameStr = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $nameStr);
-            $nameStr = trim(preg_replace('/\s+/', ' ', $nameStr));
-            
+            if (empty($cleanRow[0]) || count($cleanRow) < 2) continue;
+
+            $nameStr = $cleanRow[0];
             $nameParts = explode(' ', $nameStr, 2);
             $firstName = $nameParts[0];
             $lastName = $nameParts[1] ?? '';
@@ -166,13 +176,13 @@ class TimesheetController extends Controller
 
             // Import days 1 to 31 if they exist in the row
             for ($d = 1; $d <= 31; $d++) {
-                if (!isset($row[$d])) break;
+                if (!isset($cleanRow[$d])) break;
                 
-                $status = trim($row[$d]);
+                $status = strtoupper($cleanRow[$d]);
                 if ($status !== '') {
                     Attendance::updateOrCreate(
                         ['employee_id' => $employee->id, 'date_key' => (string)$d],
-                        ['status' => strtoupper($status)]
+                        ['status' => $status]
                     );
                     $importedCount++;
                 }

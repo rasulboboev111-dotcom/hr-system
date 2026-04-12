@@ -24,7 +24,7 @@ const form = useForm({ employee_name: '', day: '1', status: 'P', date_key: '', d
 const selectedDepartment = ref('');
 
 const activeEmployees = computed(() => {
-    let list = props.employees.filter(e => e.status !== 'Retired');
+    let list = props.employees.filter(e => (e.status || '').toLowerCase() !== 'retired');
     if (selectedDepartment.value) {
         list = list.filter(e => e.department === selectedDepartment.value);
     }
@@ -32,7 +32,7 @@ const activeEmployees = computed(() => {
 });
 
 const modalActiveEmployees = computed(() => {
-    let list = props.employees.filter(e => e.status !== 'Retired');
+    let list = props.employees.filter(e => (e.status || '').toLowerCase() !== 'retired');
     if (form.department) {
         list = list.filter(e => e.department === form.department);
     }
