@@ -201,15 +201,37 @@ export const translations = {
         update: "Нав шуд",
         delete: "Нест шуд",
         import: "Импорт шуд",
-        export: "Экспорт шуд"
+        export: "Экспорт шуд",
+        login: "Ворид шуд",
+        logout: "Хориҷ шуд",
+        clearaudit: "Тозакунии аудит"
       },
       entities: {
         employee: "Корманд",
         position: "Мансаб",
         user: "Истифодабаранда",
         payroll: "Маош",
-        department: "Шуъба"
-      }
+        department: "Шуъба",
+        timesheet: "Табели давомот",
+        admin: "Маъмурият",
+        attendance: "Давомот",
+        calendarevent: "Чорабинӣ",
+        payrollrecord: "Сабти маош",
+        shift: "Басти корӣ"
+      },
+      stats: {
+        allActions: "Ҳамаи амалҳо",
+        today: "Имрӯз",
+        activeUsers: "Корбарони фаъол"
+      },
+      page: "Саҳифа",
+      ip: "IP суроға",
+      details: "Тафсилот",
+      field: "Майдон",
+      oldValue: "Қимати пешина",
+      newValue: "Қимати нав",
+      clear: "Тоза кардан",
+      clearConfirm: "Шумо мутмаин ҳастед, ки мехоҳед тамоми таърихи аудитро нест кунед?"
     }
   },
   ru: {
@@ -414,15 +436,37 @@ export const translations = {
         update: "Обновлено",
         delete: "Удалено",
         import: "Импорт",
-        export: "Экспорт"
+        export: "Экспорт",
+        login: "Вход",
+        logout: "Выход",
+        clearaudit: "Очистка аудита"
       },
       entities: {
         employee: "Сотрудник",
         position: "Должность",
         user: "Пользователь",
         payroll: "Зарплата",
-        department: "Отдел"
-      }
+        department: "Отдел",
+        timesheet: "Табель",
+        admin: "Пользователи",
+        attendance: "Посещаемость",
+        calendarevent: "Событие",
+        payrollrecord: "Запись зарплаты",
+        shift: "Смена"
+      },
+      stats: {
+        allActions: "Всего действий",
+        today: "За сегодня",
+        activeUsers: "Активные пользователи"
+      },
+      page: "Страница",
+      ip: "IP адрес",
+      details: "Детали",
+      field: "Поле",
+      oldValue: "Старое значение",
+      newValue: "Новое значение",
+      clear: "Очистить",
+      clearConfirm: "Вы уверены, что хотите удалить весь журнал аудита?"
     }
   },
   en: {
@@ -627,15 +671,37 @@ export const translations = {
         update: "Updated",
         delete: "Deleted",
         import: "Imported",
-        export: "Exported"
+        export: "Exported",
+        login: "Logged In",
+        logout: "Logged Out",
+        clearaudit: "Clear Audit"
       },
       entities: {
         employee: "Employee",
         position: "Position",
         user: "User",
         payroll: "Payroll",
-        department: "Department"
-      }
+        department: "Department",
+        timesheet: "Timesheet",
+        admin: "Administration",
+        attendance: "Attendance",
+        calendarevent: "Calendar Event",
+        payrollrecord: "Payroll Record",
+        shift: "Shift"
+      },
+      stats: {
+        allActions: "Total Actions",
+        today: "Today",
+        activeUsers: "Active Users"
+      },
+      page: "Page",
+      ip: "IP Address",
+      details: "Details",
+      field: "Field",
+      oldValue: "Old Value",
+      newValue: "New Value",
+      clear: "Clear All",
+      clearConfirm: "Are you sure you want to delete all audit logs?"
     }
   }
 };

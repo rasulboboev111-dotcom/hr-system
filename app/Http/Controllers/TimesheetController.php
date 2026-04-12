@@ -124,7 +124,7 @@ class TimesheetController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file'
+            'file' => 'required|file|mimes:csv,txt|max:4096'
         ]);
 
         $path = $request->file('file')->getRealPath();
@@ -162,13 +162,23 @@ class TimesheetController extends Controller
         $importedCount = 0;
         
         while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
-            \Log::info("Processing row: " . json_encode($row));
-            // Clean and trim
+            // Clean and trim with security sanitization
             $cleanRow = array_map(function($val) {
                 if ($val === null) return '';
-                // Clean weird characters and normalize spaces
+                
+                // 1. Strip HTML tags to prevent XSS
+                $val = strip_tags($val);
+                
+                // 2. Clean weird characters and normalize spaces
                 $val = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $val);
-                return trim(preg_replace('/\s+/', ' ', $val));
+                $val = trim(preg_replace('/\s+/', ' ', $val));
+                
+                // 3. Prevent Formula Injection (prepend ' if starts with = + - @)
+                if ($val !== '' && in_array($val[0], ['=', '+', '-', '@'])) {
+                    $val = "'" . $val;
+                }
+                
+                return $val;
             }, $row);
 
             if (empty($cleanRow[0]) || count($cleanRow) < 2) continue;

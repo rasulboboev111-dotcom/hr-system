@@ -252,7 +252,7 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file'
+            'file' => 'required|file|mimes:csv,txt|max:4096'
         ]);
 
         $path = $request->file('file')->getRealPath();
@@ -288,11 +288,23 @@ class AdminController extends Controller
         fgetcsv($file, 0, $delimiter);
 
         while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
-            // Clean and trim
+            // Clean and trim with security sanitization
             $cleanRow = array_map(function($val) {
                 if ($val === null) return '';
+                
+                // 1. Strip HTML tags to prevent XSS
+                $val = strip_tags($val);
+                
+                // 2. Clean weird characters and normalize spaces
                 $val = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $val);
-                return trim(preg_replace('/\s+/', ' ', $val));
+                $val = trim(preg_replace('/\s+/', ' ', $val));
+                
+                // 3. Prevent Formula Injection (prepend ' if starts with = + - @)
+                if ($val !== '' && in_array($val[0], ['=', '+', '-', '@'])) {
+                    $val = "'" . $val;
+                }
+                
+                return $val;
             }, $row);
 
             if (count($cleanRow) < 5 || empty($cleanRow[1])) {
@@ -349,9 +361,100 @@ class AdminController extends Controller
             $this->checkPermission($request, 'view_audit');
         }
 
-        $logs = AuditLog::orderBy('timestamp', 'desc')->paginate(50);
+        $query = AuditLog::orderBy('timestamp', 'desc');
+
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            
+            // Map common RU/TJ terms to database keywords
+            $mapping = [
+                'actions' => [
+                    'create' => ['илова', 'добав', 'созда', 'new'],
+                    'update' => ['нав', 'обнов', 'ред', 'таҳрир', 'edit'],
+                    'delete' => ['нест', 'удал', 'тоза', 'destroy'],
+                    'import' => ['имп'],
+                    'export' => ['эксп'],
+                    'login' => ['вор', 'вход'],
+                    'logout' => ['хор', 'вых'],
+                    'clearaudit' => ['тоза', 'очист']
+                ],
+                'entities' => [
+                    'employee' => ['корм', 'сотр', 'коргар', 'физики'],
+                    'position' => ['манс', 'долж', 'вазифа'],
+                    'user' => ['ист', 'польз', 'админ'],
+                    'payroll' => ['маош', 'зарп', 'пул', 'фонд'],
+                    'department' => ['шуъб', 'отдел', 'департамент'],
+                    'timesheet' => ['табел', 'тав'],
+                    'admin' => ['маъм', 'адм', 'система'],
+                    'attendance' => ['давом', 'посещ'],
+                    'calendarevent' => ['чора', 'событ', 'ивент'],
+                    'shift' => ['баст', 'смен']
+                ]
+            ];
+
+            $query->where(function($q) use ($search, $mapping) {
+                // Personal search (User/Username)
+                $q->where('user_name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+
+                // Check for mapped actions
+                foreach ($mapping['actions'] as $en => $locales) {
+                    foreach ($locales as $term) {
+                        if (str_contains($search, $term) || str_contains($en, $search)) {
+                            $q->orWhere('action', 'like', "%{$en}%");
+                            break;
+                        }
+                    }
+                }
+
+                // Check for mapped entities (Objects)
+                foreach ($mapping['entities'] as $en => $locales) {
+                    foreach ($locales as $term) {
+                        if (str_contains($search, $term) || str_contains($en, $search)) {
+                            $q->orWhere('entity_type', 'like', "%{$en}%");
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        $logs = $query->paginate(50)->appends($request->all());
+        
+        $stats = [
+            'totalActions' => AuditLog::count(),
+            'todayActions' => AuditLog::whereDate('timestamp', now())->count(),
+            'activeUsersCount' => AuditLog::where('timestamp', '>=', now()->subDay())->distinct('user_id')->count('user_id'),
+        ];
+
         return Inertia::render('Admin/Audit', [
-            'logs' => $logs
+            'logs' => $logs,
+            'stats' => $stats,
+            'filters' => $request->only('search')
         ]);
+    }
+
+    public function clearAudit(Request $request)
+    {
+        $userRoles = $request->user()->role_ids ?? [];
+        if (!in_array('admin', $userRoles)) {
+            abort(403, 'Шумо ҳуқуқи тоза кардани аудитро надоред.');
+        }
+
+        AuditLog::truncate();
+
+        // Log the deletion itself
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
+            'action' => 'clearAudit',
+            'entity_type' => 'Admin',
+            'description' => 'Cleared all audit logs',
+            'timestamp' => now()->toIso8601String(),
+            'url' => $request->fullUrl(),
+            'ip_address' => $request->ip()
+        ]);
+
+        return redirect()->back();
     }
 }

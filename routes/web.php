@@ -142,6 +142,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/users/{user}', [\App\Http\Controllers\AdminController::class, 'destroyUser']);
         
         Route::get('/audit', [\App\Http\Controllers\AdminController::class, 'auditIndex']);
+        Route::delete('/audit/clear', [\App\Http\Controllers\AdminController::class, 'clearAudit']);
     });
 });
 

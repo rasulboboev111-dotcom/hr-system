@@ -139,7 +139,7 @@ class EmployeeController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file'
+            'file' => 'required|file|mimes:csv,txt|max:4096'
         ]);
 
         $path = $request->file('file')->getRealPath();
@@ -175,11 +175,23 @@ class EmployeeController extends Controller
         fgetcsv($file, 0, $delimiter);
 
         while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
-            // Clean weird characters and trim
+            // Clean weird characters and trim with security sanitization
             $cleanRow = array_map(function($val) {
                 if ($val === null) return '';
+                
+                // 1. Strip HTML tags to prevent XSS
+                $val = strip_tags($val);
+                
+                // 2. Clean weird characters and normalize spaces
                 $val = preg_replace('/[\x00-\x1F\x7F\xA0]/u', ' ', $val);
-                return trim(preg_replace('/\s+/', ' ', $val));
+                $val = trim(preg_replace('/\s+/', ' ', $val));
+                
+                // 3. Prevent Formula Injection (prepend ' if starts with = + - @)
+                if ($val !== '' && in_array($val[0], ['=', '+', '-', '@'])) {
+                    $val = "'" . $val;
+                }
+                
+                return $val;
             }, $row);
 
             if (count($cleanRow) >= 6 && !empty($cleanRow[3])) { // row[3] is email

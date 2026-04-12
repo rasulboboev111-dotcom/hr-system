@@ -3,8 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\Auditable;
 
 class CalendarEvent extends Model
 {
+    use HasFactory, Auditable;
+
     protected $fillable = ['title', 'date', 'type', 'description'];
 }
