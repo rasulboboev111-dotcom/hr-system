@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\AuditLog;
+use Illuminate\Support\Facades\DB;
 
 class TimesheetController extends Controller
 {
@@ -127,33 +128,41 @@ class TimesheetController extends Controller
         ]);
 
         $path = $request->file('file')->getRealPath();
-        \Log::info("CSV Import started reading from: " . $path);
-        
-        $file = fopen($path, 'r');
-        if (!$file) {
-            return redirect()->back()->withErrors(['file' => 'Failed to open file.']);
+        $content = file_get_contents($path);
+
+        // Detect and convert encoding from Windows-1251 to UTF-8 if needed
+        if (!mb_check_encoding($content, 'UTF-8')) {
+            $converted = @mb_convert_encoding($content, 'UTF-8', 'Windows-1251');
+            if (mb_check_encoding($converted, 'UTF-8')) {
+                $content = $converted;
+                \Log::info("CSV encoding converted from Windows-1251 to UTF-8");
+            }
         }
-        
-        // Detect delimiter and handle BOM
-        $firstLine = fgets($file);
-        if ($firstLine === false) {
-            fclose($file);
-            return redirect()->back(); // empty file
-        }
-        
-        // Strip BOM
-        $bom = pack('H*', 'EFBBBF');
-        $firstLine = preg_replace("/^$bom/", '', $firstLine);
-        
-        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+
+        // Remove UTF-8 BOM if it exists
+        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+
+        // Create a temporary stream for fgetcsv
+        $file = fopen('php://temp', 'r+');
+        fwrite($file, $content);
         rewind($file);
-        
+
+        if (!$file) {
+            return redirect()->back()->withErrors(['file' => 'Failed to process file.']);
+        }
+
+        // Detect delimiter from the first line
+        $firstLine = fgets($file);
+        $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
+        rewind($file);
+
         // Skip header
         fgetcsv($file, 0, $delimiter);
-        
+
         $importedCount = 0;
         
         while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
+            \Log::info("Processing row: " . json_encode($row));
             // Clean and trim
             $cleanRow = array_map(function($val) {
                 if ($val === null) return '';
@@ -165,14 +174,34 @@ class TimesheetController extends Controller
             if (empty($cleanRow[0]) || count($cleanRow) < 2) continue;
 
             $nameStr = $cleanRow[0];
-            $nameParts = explode(' ', $nameStr, 2);
-            $firstName = $nameParts[0];
-            $lastName = $nameParts[1] ?? '';
+            
+            // Flexible employee matching (including archived ones)
+            // Try matching by the full string (name + last_name) first
+            $employee = Employee::withTrashed()
+                ->where(DB::raw("TRIM(CONCAT(name, ' ', COALESCE(last_name, '')))"), 'ILIKE', $nameStr)
+                ->first();
 
-            $employee = Employee::firstOrCreate(
-                ['name' => $firstName, 'last_name' => $lastName],
-                ['status' => 'Active']
-            );
+            // Fallback: try split names if direct match fails
+            if (!$employee) {
+                $nameParts = explode(' ', $nameStr, 2);
+                $firstName = $nameParts[0];
+                $lastName = $nameParts[1] ?? '';
+                
+                $employee = Employee::withTrashed()
+                    ->where('name', 'ILIKE', $firstName)
+                    ->where('last_name', 'ILIKE', $lastName)
+                    ->first();
+            }
+
+            // If still not found, only then create a new one to avoid chaos
+            if (!$employee) {
+                $nameParts = explode(' ', $nameStr, 2);
+                $employee = Employee::create([
+                    'name' => $nameParts[0],
+                    'last_name' => $nameParts[1] ?? '',
+                    'status' => 'active'
+                ]);
+            }
 
             // Import days 1 to 31 if they exist in the row
             for ($d = 1; $d <= 31; $d++) {

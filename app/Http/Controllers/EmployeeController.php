@@ -143,23 +143,34 @@ class EmployeeController extends Controller
         ]);
 
         $path = $request->file('file')->getRealPath();
-        $file = fopen($path, 'r');
-        if (!$file) return redirect()->back()->withErrors(['file' => 'Failed to open file.']);
+        $content = file_get_contents($path);
 
-        // Detect delimiter and handle BOM
-        $firstLine = fgets($file);
-        if ($firstLine === false) {
-            fclose($file);
-            return redirect()->back();
+        // Detect and convert encoding from Windows-1251 to UTF-8 if needed
+        if (!mb_check_encoding($content, 'UTF-8')) {
+            $converted = @mb_convert_encoding($content, 'UTF-8', 'Windows-1251');
+            if (mb_check_encoding($converted, 'UTF-8')) {
+                $content = $converted;
+                \Log::info("Employee CSV encoding converted from Windows-1251 to UTF-8");
+            }
         }
 
-        // Strip BOM
-        $bom = pack('H*', 'EFBBBF');
-        $firstLine = preg_replace("/^$bom/", '', $firstLine);
-        
-        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+        // Remove UTF-8 BOM if it exists
+        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+
+        // Create a temporary stream for fgetcsv
+        $file = fopen('php://temp', 'r+');
+        fwrite($file, $content);
         rewind($file);
-        
+
+        if (!$file) {
+            return redirect()->back()->withErrors(['file' => 'Failed to process file.']);
+        }
+
+        // Detect delimiter from the first line
+        $firstLine = fgets($file);
+        $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
+        rewind($file);
+
         // Skip header
         fgetcsv($file, 0, $delimiter);
 
