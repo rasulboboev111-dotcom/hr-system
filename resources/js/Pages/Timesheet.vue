@@ -109,7 +109,7 @@ const getTotalHours = (empId) => {
 };
 
 const handleConfirmTimesheet = () => {
-    alert("Давомот тасдиқ ва қулф шуд.");
+    alert(t('timesheet.confirmed'));
 };
 
 const handleExport = () => {
@@ -128,7 +128,7 @@ const handleImport = (e) => {
         router.post('/timesheet/import', formData, {
         preserveScroll: true,
         onError: (err) => {
-            alert('Хатогӣ ҳангоми импорт: ' + Object.values(err).join('\n'));
+            alert(t('timesheet.importError') + ': ' + Object.values(err).join('\n'));
         },
         onSuccess: () => {
             alert(t('common.importSuccess') || 'Импорт бо муваффақият анҷом шуд');
@@ -225,7 +225,7 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                         <AlertCircle class="h-5 w-5" />
                     </div>
                     <div>
-                        <p class="text-[9px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-widest">Миёнаи соатҳо</p>
+                        <p class="text-[9px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-widest">{{ t('timesheet.avgHours') }}</p>
                         <p class="text-xl font-bold">{{ stats.averageHours }}</p>
                     </div>
                 </div>
@@ -310,7 +310,7 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                     </div>
                     <div class="space-y-2">
                         <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.employees') }}</label>
-                        <input v-model="form.employee_name" list="timesheet-employee-list" placeholder="Интихоби корманд ё ворид кардани нав" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none" autocomplete="off" />
+                        <input v-model="form.employee_name" list="timesheet-employee-list" :placeholder="t('timesheet.selectEmployeePlaceholder')" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none" autocomplete="off" />
                         <datalist id="timesheet-employee-list">
                             <option v-for="emp in modalActiveEmployees" :key="emp.id" :value="emp.name + ' ' + (emp.last_name || '')"></option>
                         </datalist>
@@ -325,9 +325,9 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('common.status') || 'Статус' }}</label>
                             <select v-model="form.status" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
-                                <option value="P">P - Ҳозир</option>
-                                <option value="L">L - Дермонда</option>
-                                <option value="A">A - Ғоиб</option>
+                                <option value="P">{{ t('timesheet.statusP') }}</option>
+                                <option value="L">{{ t('timesheet.statusL') }}</option>
+                                <option value="A">{{ t('timesheet.statusA') }}</option>
                             </select>
                         </div>
                     </div>

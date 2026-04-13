@@ -75,7 +75,7 @@ const performers = computed(() => props.topPerformers || []);
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <div v-for="metric in metrics" :key="metric.title"
                      class="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm rounded-xl">
-                    <div :class="[metric.color, 'h-1.5 w-full']"></div>
+
                     <div class="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
                         <h3 class="text-[10px] font-extrabold text-[hsl(var(--muted-foreground))]/60 uppercase tracking-widest">
                             {{ metric.title }}
@@ -109,11 +109,11 @@ const performers = computed(() => props.topPerformers || []);
                             <div class="space-y-1">
                                 <h3 class="text-lg font-bold flex items-center gap-2">
                                     <Star class="h-5 w-5 text-amber-500 fill-amber-500" />
-                                    Top Кормандон
+                                    {{ t('dashboard.topPerformers') }}
                                 </h3>
-                                <p class="text-xs text-[hsl(var(--muted-foreground))]">Кормандони фаъолтарин дар ин моҳ</p>
+                                <p class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('dashboard.topPerformersSubtitle') }}</p>
                             </div>
-                            <span class="text-[10px] uppercase font-bold text-[hsl(var(--primary))] border border-[hsl(var(--border))] rounded-full px-3 py-1">Рейтинги моҳона</span>
+                            <span class="text-[10px] uppercase font-bold text-[hsl(var(--primary))] border border-[hsl(var(--border))] rounded-full px-3 py-1">{{ t('dashboard.monthlyRating') }}</span>
                         </div>
                         
                         <div class="grid gap-4">
@@ -137,7 +137,7 @@ const performers = computed(() => props.topPerformers || []);
                                         <Zap class="h-3 w-3 fill-emerald-600" />
                                         {{ emp.performance_score || 95 }}%
                                     </div>
-                                    <p class="text-[9px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Самаранокӣ</p>
+                                    <p class="text-[9px] text-[hsl(var(--muted-foreground))] uppercase font-bold">{{ t('dashboard.performance') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -149,18 +149,18 @@ const performers = computed(() => props.topPerformers || []);
                 <div class="md:col-span-4 space-y-6">
                     <!-- Quick Stats -->
                     <div class="border-none shadow-sm rounded-2xl bg-white/70 backdrop-blur-md p-6">
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-4">Омори зуд</h3>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-[hsl(var(--muted-foreground))] mb-4">{{ t('dashboard.quickStats') }}</h3>
                         <div class="space-y-4">
                             <div class="flex items-center justify-between text-xs">
-                                <span class="text-[hsl(var(--muted-foreground))]">Кормандони нав</span>
+                                <span class="text-[hsl(var(--muted-foreground))]">{{ t('dashboard.newEmployees') }}</span>
                                 <span class="font-bold">{{ props.quickStats?.newEmployees || 0 }}</span>
                             </div>
                             <div class="flex items-center justify-between text-xs">
-                                <span class="text-[hsl(var(--muted-foreground))]">Дархостҳои интизорӣ</span>
+                                <span class="text-[hsl(var(--muted-foreground))]">{{ t('dashboard.pendingRequests') }}</span>
                                 <span class="font-bold text-amber-600">{{ props.quickStats?.pendingRequests || 0 }}</span>
                             </div>
                             <div class="flex items-center justify-between text-xs">
-                                <span class="text-[hsl(var(--muted-foreground))]">Мусоҳибаҳои банақшагирифта</span>
+                                <span class="text-[hsl(var(--muted-foreground))]">{{ t('dashboard.scheduledInterviews') }}</span>
                                 <span class="font-bold">{{ props.quickStats?.scheduledInterviews || 0 }}</span>
                             </div>
                         </div>
@@ -168,15 +168,15 @@ const performers = computed(() => props.topPerformers || []);
                     
                     <!-- System Status -->
                     <div class="border-none shadow-sm rounded-2xl bg-[hsl(var(--primary))]/5 p-6 border border-[hsl(var(--primary))]/10">
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-[hsl(var(--primary))] mb-4">Ҳолати система</h3>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-[hsl(var(--primary))] mb-4">{{ t('dashboard.systemStatus') }}</h3>
                         <div class="space-y-4">
                             <div class="flex items-center gap-3">
                                 <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span class="text-xs font-bold text-[hsl(var(--primary))]/80 uppercase">Базаи маълумот пайвастшуда</span>
+                                <span class="text-xs font-bold text-[hsl(var(--primary))]/80 uppercase">{{ t('dashboard.dbConnected') }}</span>
                             </div>
                             <div class="flex items-center gap-3">
                                 <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span class="text-xs font-bold text-[hsl(var(--primary))]/80 uppercase">Хидмати Auth фаъол</span>
+                                <span class="text-xs font-bold text-[hsl(var(--primary))]/80 uppercase">{{ t('dashboard.authServiceActive') }}</span>
                             </div>
                         </div>
                     </div>

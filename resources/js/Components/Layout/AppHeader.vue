@@ -16,7 +16,6 @@ const emit = defineEmits(['toggle-sidebar']);
 
 const handleLanguageSelect = (e) => {
     setLanguage(e.target.value);
-    window.location.reload();
 };
 
 const logout = () => {

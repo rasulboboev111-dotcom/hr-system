@@ -148,7 +148,7 @@ const submitForm = () => {
 };
 
 const deleteEmployee = (id) => {
-    if (confirm('Шумо мутмаин ҳастед, ки ин кормандро нест кардан мехоҳед?')) {
+    if (confirm(t('common.confirmDelete') || 'Are you sure?')) {
         router.delete(`/employees/${id}`);
     }
 };
@@ -172,7 +172,7 @@ const deleteEmployee = (id) => {
                 <div class="flex items-center gap-3">
                     <input type="file" ref="fileInputRef" accept=".csv" class="hidden" @change="handleImport" />
                     <button v-if="canImport" @click="fileInputRef.click()" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
-                        <UploadCloud class="h-4 w-4" /> Импорти CSV
+                        <UploadCloud class="h-4 w-4" /> {{ t('common.import') }} CSV
                     </button>
                     <button v-if="canExport" @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
                         <Download class="h-4 w-4" /> {{ t('common.export') }}
@@ -289,9 +289,9 @@ const deleteEmployee = (id) => {
         <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div class="bg-[hsl(var(--card))] w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
                 <div class="p-6 border-b border-[hsl(var(--border))]">
-                    <h2 class="text-xl font-bold">{{ isEditing ? 'Таҳрири Корманд' : 'Иловаи Корманд' }}</h2>
+                    <h2 class="text-xl font-bold">{{ isEditing ? t('employees.modal.editTitle') : t('employees.modal.addTitle') }}</h2>
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold tracking-widest mt-1">
-                        {{ isEditing ? 'Маълумоти кормандро иваз кунед' : 'Сабти навро ворид кунед' }}
+                        {{ isEditing ? t('employees.modal.editSubtitle') : t('employees.modal.addSubtitle') }}
                     </p>
                 </div>
                 <form @submit.prevent="submitForm" class="p-6 space-y-4">
@@ -318,7 +318,7 @@ const deleteEmployee = (id) => {
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.department') }}</label>
-                        <input v-model="form.department" list="departments-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="Интихоби шӯъба" autocomplete="off" />
+                        <input v-model="form.department" list="departments-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" :placeholder="t('employees.modal.selectDept')" autocomplete="off" />
                         <datalist id="departments-list">
                             <option v-for="dept in departments" :key="dept.id" :value="dept.name"></option>
                         </datalist>
@@ -328,12 +328,12 @@ const deleteEmployee = (id) => {
                             <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.status') }}</label>
                             <select v-model="form.status" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
                                 <option value="active">{{ t('common.active') }}</option>
-                                <option value="inactive">Ғайрифаъол</option>
+                                <option value="inactive">{{ t('common.inactive') }}</option>
                                 <option value="on_hold">{{ t('common.onHold') }}</option>
                             </select>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Маош (Salary)</label>
+                            <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('employees.salaryLabel') }}</label>
                             <input v-model="form.salary" type="number" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="8500" />
                         </div>
                     </div>

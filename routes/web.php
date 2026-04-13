@@ -36,81 +36,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', function () { return Inertia::render('Profile'); });
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
 
-    Route::get('/archive', function (\Illuminate\Http\Request $request) { 
-        if (!$request->user()->hasPermission('view_archive') && !$request->user()->hasPermission('view_all') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи дидани архивро надоред.');
-        }
-
-        $query = \App\Models\Employee::onlyTrashed();
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('last_name', 'ilike', "%{$search}%")
-                  ->orWhere('email', 'ilike', "%{$search}%")
-                  ->orWhere('department', 'ilike', "%{$search}%")
-                  ->orWhere('role', 'ilike', "%{$search}%");
-            });
-        }
-        
-        return Inertia::render('Archive', [
-            'employees' => $query->get(),
-            'filters' => $request->only('search'),
-            'departments' => \App\Models\Department::all(),
-            'positions' => \App\Models\Position::all()
-        ]); 
-    });
-
-    Route::post('/archive', function (\Illuminate\Http\Request $request) {
-        if (!$request->user()->hasPermission('add_archive') && !$request->user()->hasPermission('edit_all') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи илова ба архивро надоред.');
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email'.(\App\Models\Employee::where('email', $request->email)->exists() ? '' : '|unique:employees,email'),
-            'role' => 'required|string',
-            'department' => 'required|string',
-        ]);
-        
-        $validated['status'] = 'Retired';
-        
-        $employee = \App\Models\Employee::create($validated);
-        $employee->delete();
-        
-        return redirect()->back();
-    });
-
-    Route::put('/archive/{id}', function (\Illuminate\Http\Request $request, $id) {
-        if (!$request->user()->hasPermission('edit_archive') && !$request->user()->hasPermission('edit_all') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи таҳрири архивро надоред.');
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email'.(\App\Models\Employee::withTrashed()->where('email', $request->email)->where('id', '!=', $id)->exists() ? '|unique:employees,email' : ''),
-            'role' => 'required|string',
-            'department' => 'required|string',
-        ]);
-        
-        $employee = \App\Models\Employee::withTrashed()->findOrFail($id);
-        $employee->update($validated);
-        
-        return redirect()->back();
-    });
-
-    Route::delete('/archive/{id}', function (\Illuminate\Http\Request $request, $id) {
-        if (!$request->user()->hasPermission('delete_archive') && !$request->user()->hasPermission('edit_all') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи тозакунии архивро надоред.');
-        }
-
-        $employee = \App\Models\Employee::withTrashed()->findOrFail($id);
-        $employee->forceDelete();
-        return redirect()->back();
-    });
+    Route::get('/archive', [\App\Http\Controllers\ArchiveController::class, 'index']);
+    Route::post('/archive', [\App\Http\Controllers\ArchiveController::class, 'store']);
+    Route::put('/archive/{id}', [\App\Http\Controllers\ArchiveController::class, 'update']);
+    Route::delete('/archive/{id}', [\App\Http\Controllers\ArchiveController::class, 'destroy']);
 
     Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index']);
     Route::post('/calendar/events', [\App\Http\Controllers\CalendarController::class, 'store']);

@@ -246,7 +246,7 @@ const canImport = computed(() => page.props.auth.permissions.includes('add_payro
                 </div>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-2">
                 <div class="border border-[hsl(var(--border))] rounded-xl shadow-sm bg-white overflow-hidden group">
                     <div class="h-1 w-full bg-[hsl(var(--primary))]" />
                     <div class="p-6 pb-2 flex flex-row items-center justify-between">
@@ -258,17 +258,7 @@ const canImport = computed(() => page.props.auth.permissions.includes('add_payro
                         <p class="text-[10px] text-emerald-600 font-bold mt-1">+2.4% <span class="text-[hsl(var(--muted-foreground))] font-normal">{{ t('dashboard.vsLastMonth') }}</span></p>
                     </div>
                 </div>
-                <div class="border border-[hsl(var(--border))] rounded-xl shadow-sm bg-white overflow-hidden group">
-                    <div class="h-1 w-full bg-amber-500" />
-                    <div class="p-6 pb-2 flex flex-row items-center justify-between">
-                        <h3 class="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-widest">{{ t('payroll.upcomingPayments') }}</h3>
-                        <Clock class="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <div class="p-6 pt-0">
-                        <div class="text-2xl font-bold">{{ new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) }}</div>
-                        <p class="text-[10px] text-[hsl(var(--muted-foreground))] font-bold mt-1 uppercase tracking-tighter">Оғози давраи навбатӣ</p>
-                    </div>
-                </div>
+
                 <div class="border border-[hsl(var(--border))] rounded-xl shadow-sm bg-white overflow-hidden group">
                     <div class="h-1 w-full bg-emerald-500" />
                     <div class="p-6 pb-2 flex flex-row items-center justify-between">
@@ -277,7 +267,7 @@ const canImport = computed(() => page.props.auth.permissions.includes('add_payro
                     </div>
                     <div class="p-6 pt-0">
                         <div class="text-2xl font-bold text-emerald-600">{{ t('common.success').toUpperCase() }}</div>
-                        <p class="text-[10px] text-[hsl(var(--muted-foreground))] font-bold mt-1 uppercase tracking-tighter">Тасдиқшуда имрӯз</p>
+                        <p class="text-[10px] text-[hsl(var(--muted-foreground))] font-bold mt-1 uppercase tracking-tighter">{{ t('payroll.verifiedToday') }}</p>
                     </div>
                 </div>
             </div>
@@ -370,35 +360,35 @@ const canImport = computed(() => page.props.auth.permissions.includes('add_payro
                 <div class="p-6 border-b border-[hsl(var(--border))]">
                     <h2 class="text-xl font-bold flex items-center gap-2">
                         <Wallet class="h-5 w-5 text-[hsl(var(--primary))]" />
-                        {{ t('payroll.title') }}
+                        {{ t('payroll.modalTitle') }}
                     </h2>
-                    <p class="text-xs text-[hsl(var(--muted-foreground))] mt-1">Маълумоти маошро барои корманди интихобшуда навсозӣ кунед.</p>
+                    <p class="text-xs text-[hsl(var(--muted-foreground))] mt-1">{{ t('payroll.modalSubtitle') }}</p>
                 </div>
                 <div class="p-6 grid gap-4">
                     <div class="space-y-1.5">
                         <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.employees') }}</label>
-                        <input v-model="form.employee_name" list="payroll-emp-list" placeholder="Ному насаби корманд" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <input v-model="form.employee_name" list="payroll-emp-list" :placeholder="t('payroll.employeeNamePlaceholder')" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
                         <datalist id="payroll-emp-list">
                             <option v-for="emp in payrollData" :key="emp.id" :value="[emp.name, emp.last_name].filter(Boolean).join(' ')"></option>
                         </datalist>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Мансаб</label>
-                        <input v-model="form.role" list="payroll-role-list" placeholder="Мансабро интихоб кунед ё ворид кунед" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('common.role') }}</label>
+                        <input v-model="form.role" list="payroll-role-list" :placeholder="t('payroll.selectPositionPlaceholder')" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
                         <datalist id="payroll-role-list">
                             <option v-for="role in uniqueRoles" :key="role" :value="role"></option>
                         </datalist>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Шуъба</label>
-                        <input v-model="form.department" list="payroll-dept-list" placeholder="Шуъбаро интихоб кунед ё ворид кунед" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('common.department') }}</label>
+                        <input v-model="form.department" list="payroll-dept-list" :placeholder="t('payroll.selectDeptPlaceholder')" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
                         <datalist id="payroll-dept-list">
                             <option v-for="dept in uniqueDepartments" :key="dept" :value="dept"></option>
                         </datalist>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('payroll.salary') }}</label>
-                        <input v-model="form.salary" type="number" placeholder="мас. 15000" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
+                        <input v-model="form.salary" type="number" :placeholder="t('payroll.salaryPlaceholder')" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
                     </div>
                 </div>
                 <div class="px-6 pb-6 pt-2 flex items-center gap-3">

@@ -68,7 +68,7 @@ class AdminController extends Controller
             $rolesData['roles'][] = $data;
         }
 
-        file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         \Illuminate\Support\Facades\Cache::forget('roles_json_data');
 
         return redirect()->back();
@@ -92,7 +92,7 @@ class AdminController extends Controller
             return $r['id'] !== $id;
         }));
 
-        file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         \Illuminate\Support\Facades\Cache::forget('roles_json_data');
 
         return redirect()->back();
@@ -122,7 +122,7 @@ class AdminController extends Controller
         }
 
         $rolesData['permissions'][] = $data;
-        file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         \Illuminate\Support\Facades\Cache::forget('roles_json_data');
 
         return redirect()->back();

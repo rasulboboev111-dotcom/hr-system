@@ -33,7 +33,27 @@ export const translations = {
       vacant: "Холӣ",
       filled: "Пур шуд",
       onHold: "Боздошт",
+      inactive: "Ғайрифаъол",
       importSuccess: "Импорт бо муваффақият анҷом шуд"
+    },
+    employees: {
+      modal: {
+        addTitle: "Иловаи Корманд",
+        editTitle: "Таҳрири Корманд",
+        addSubtitle: "Сабти навро ворид кунед",
+        editSubtitle: "Маълумоти кормандро иваз кунед",
+        selectDept: "Интихоби шӯъба"
+      },
+      salaryLabel: "Маош (Salary)"
+    },
+    auth: {
+      loginTitle: "Siizi HR Platform",
+      loginSubtitle: "Ба ҳисоби худ ворид шавед",
+      email: "Почтаи электронӣ",
+      password: "Рамз",
+      loginButton: "Воридшавӣ",
+      loggingIn: "Воридшавӣ...",
+      failed: "Почтаи электронӣ ё рамзи нодуруст ворид карда шудааст."
     },
     menu: {
       dashboard: "Панели идоракунӣ",
@@ -161,7 +181,14 @@ export const translations = {
       absent: "Ғоиб",
       totalHours: "Ҳамагӣ (соат)",
       addEntry: "Иловаи сабти давомот",
-      dayOfMonth: "Рӯзи моҳ"
+      dayOfMonth: "Рӯзи моҳ",
+      avgHours: "Миёнаи соатҳо",
+      confirmed: "Давомот тасдиқ ва қулф шуд.",
+      importError: "Хатогӣ ҳангоми импорт",
+      statusP: "P - Ҳозир",
+      statusL: "L - Дермонда",
+      statusA: "A - Ғоиб",
+      selectEmployeePlaceholder: "Интихоби корманд ё ворид кардани нав"
     },
     archive: {
       title: "Байгонӣ",
@@ -200,7 +227,14 @@ export const translations = {
       paid: "Пардохт шуд",
       totalFund: "Фонди умумӣ",
       upcomingPayments: "Пардохтҳои оянда",
-      lastStatus: "Ҳолати охирин"
+      lastStatus: "Ҳолати охирин",
+      verifiedToday: "Тасдиқшуда имрӯз",
+      modalTitle: "Идоракунии музди меҳнат",
+      modalSubtitle: "Маълумоти маошро барои корманди интихобшуда навсозӣ кунед",
+      employeeNamePlaceholder: "Ному насаби корманд",
+      selectPositionPlaceholder: "Мансабро интихоб кунед ё ворид кунед",
+      selectDeptPlaceholder: "Шуъбаро интихоб кунед ё ворид кунед",
+      salaryPlaceholder: "мас. 15000"
     },
     dashboard: {
       title: "Панели идоракунӣ",
@@ -215,7 +249,18 @@ export const translations = {
       currentQuarterProgress: "Пешрафти семоҳаи ҷорӣ",
       vsLastMonth: "нисбат ба моҳи гузашта",
       viewAll: "Ҳамаро дидан",
-      details: "Тафсилот"
+      details: "Тафсилот",
+      topPerformers: "Тор Кормандон",
+      topPerformersSubtitle: "Кормандони фаъолтарин дар ин моҳ",
+      monthlyRating: "Рейтинги моҳона",
+      performance: "Самаранокӣ",
+      quickStats: "Омори зуд",
+      newEmployees: "Кормандони нав",
+      pendingRequests: "Дархостҳои интизорӣ",
+      scheduledInterviews: "Мусоҳибаҳои банақшагирифта",
+      systemStatus: "Ҳолати система",
+      dbConnected: "Базаи маълумот пайвастшуда",
+      authServiceActive: "Хидмати Auth фаъол"
     },
     audit: {
       title: "Аудити амалҳо",
@@ -296,7 +341,27 @@ export const translations = {
       vacant: "Вакансия",
       filled: "Занято",
       onHold: "Приостановлено",
+      inactive: "Неактивен",
       importSuccess: "Импорт успешно завершен"
+    },
+    employees: {
+      modal: {
+        addTitle: "Добавить сотрудника",
+        editTitle: "Редактировать сотрудника",
+        addSubtitle: "Введите новую запись",
+        editSubtitle: "Измените данные сотрудника",
+        selectDept: "Выберите отдел"
+      },
+      salaryLabel: "Зарплата (Salary)"
+    },
+    auth: {
+      loginTitle: "Siizi HR Platform",
+      loginSubtitle: "Войдите в свою учетную запись",
+      email: "Электронная почта",
+      password: "Пароль",
+      loginButton: "Войти",
+      loggingIn: "Вход...",
+      failed: "Неверный адрес электронной почты или пароль."
     },
     menu: {
       dashboard: "Рабочий стол",
@@ -424,7 +489,14 @@ export const translations = {
       present: "Присутствовал",
       late: "Опоздал",
       absent: "Отсутствовал",
-      totalHours: "Итого (часов)"
+      totalHours: "Итого (часов)",
+      avgHours: "Среднее часов",
+      confirmed: "Посещаемость подтверждена и заблокирована.",
+      importError: "Ошибка при импорте",
+      statusP: "P - Присутствует",
+      statusL: "L - Опоздание",
+      statusA: "A - Отсутствует",
+      selectEmployeePlaceholder: "Выберите сотрудника или введите нового"
     },
     archive: {
       title: "Архив",
@@ -463,7 +535,14 @@ export const translations = {
       paid: "Оплачено",
       totalFund: "Общий фонд",
       upcomingPayments: "Ближайшие выплаты",
-      lastStatus: "Последний статус"
+      lastStatus: "Последний статус",
+      verifiedToday: "Подтверждено сегодня",
+      modalTitle: "Управление зарплатами",
+      modalSubtitle: "Обновите данные по зарплате для выбранного сотрудника",
+      employeeNamePlaceholder: "ФИО сотрудника",
+      selectPositionPlaceholder: "Выберите или введите должность",
+      selectDeptPlaceholder: "Выберите или введите отдел",
+      salaryPlaceholder: "напр. 15000"
     },
     dashboard: {
       title: "Рабочий стол",
@@ -478,7 +557,18 @@ export const translations = {
       currentQuarterProgress: "Прогресс за текущий квартал",
       vsLastMonth: "vs прошлый месяц",
       viewAll: "Смотреть все",
-      details: "Детали"
+      details: "Детали",
+      topPerformers: "Топ Сотрудники",
+      topPerformersSubtitle: "Самые активные сотрудники в этом месяце",
+      monthlyRating: "Месячный рейтинг",
+      performance: "Эффективность",
+      quickStats: "Быстрая статистика",
+      newEmployees: "Новые сотрудники",
+      pendingRequests: "Ожидающие запросы",
+      scheduledInterviews: "Запланированные интервью",
+      systemStatus: "Статус системы",
+      dbConnected: "База данных подключена",
+      authServiceActive: "Сервис Auth активен"
     },
     audit: {
       title: "Аудит действий",
@@ -559,7 +649,27 @@ export const translations = {
       vacant: "Vacant",
       filled: "Filled",
       onHold: "On Hold",
+      inactive: "Inactive",
       importSuccess: "Import completed successfully"
+    },
+    employees: {
+      modal: {
+        addTitle: "Add Employee",
+        editTitle: "Edit Employee",
+        addSubtitle: "Enter new record",
+        editSubtitle: "Update employee data",
+        selectDept: "Select department"
+      },
+      salaryLabel: "Salary"
+    },
+    auth: {
+      loginTitle: "Siizi HR Platform",
+      loginSubtitle: "Sign in to your account",
+      email: "Email Address",
+      password: "Password",
+      loginButton: "Login",
+      loggingIn: "Logging in...",
+      failed: "The provided credentials do not match our records."
     },
     menu: {
       dashboard: "Dashboard",
@@ -687,7 +797,14 @@ export const translations = {
       present: "Present",
       late: "Late",
       absent: "Absent",
-      totalHours: "Total (hours)"
+      totalHours: "Total (hours)",
+      avgHours: "Average Hours",
+      confirmed: "Attendance confirmed and locked.",
+      importError: "Error during import",
+      statusP: "P - Present",
+      statusL: "L - Late",
+      statusA: "A - Absent",
+      selectEmployeePlaceholder: "Select employee or enter new one"
     },
     archive: {
       title: "Archive",
@@ -726,7 +843,14 @@ export const translations = {
       paid: "Paid",
       totalFund: "Total Fund",
       upcomingPayments: "Upcoming Payments",
-      lastStatus: "Last Status"
+      lastStatus: "Last Status",
+      verifiedToday: "Verified Today",
+      modalTitle: "Payroll Management",
+      modalSubtitle: "Update payroll information for the selected employee",
+      employeeNamePlaceholder: "Employee full name",
+      selectPositionPlaceholder: "Select or enter position",
+      selectDeptPlaceholder: "Select or enter department",
+      salaryPlaceholder: "e.g. 15000"
     },
     dashboard: {
       title: "Dashboard",
@@ -741,7 +865,18 @@ export const translations = {
       currentQuarterProgress: "Current quarter progress",
       vsLastMonth: "vs last month",
       viewAll: "View All",
-      details: "Details"
+      details: "Details",
+      topPerformers: "Top Performers",
+      topPerformersSubtitle: "Most active employees this month",
+      monthlyRating: "Monthly Rating",
+      performance: "Performance",
+      quickStats: "Quick Stats",
+      newEmployees: "New Employees",
+      pendingRequests: "Pending Requests",
+      scheduledInterviews: "Scheduled Interviews",
+      systemStatus: "System Status",
+      dbConnected: "Database Connected",
+      authServiceActive: "Auth Service Active"
     },
     audit: {
       title: "Action Audit",

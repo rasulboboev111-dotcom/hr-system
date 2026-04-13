@@ -211,9 +211,8 @@ class PayrollController extends Controller
             abort(403, 'Шумо ҳуқуқи нест кардани маълумоти маошро надоред.');
         }
 
-        // We delete the record for the current month/year or the one associated with the record ID
-        // For simplicity, we find the record for this employee and delete it
-        PayrollRecord::where('employee_id', $id)->delete();
+        $currentMonth = now()->format('Y-m');
+        PayrollRecord::where('employee_id', $id)->where('month_year', $currentMonth)->delete();
 
         return redirect()->back();
     }
