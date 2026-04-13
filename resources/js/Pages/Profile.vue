@@ -2,7 +2,9 @@
 import { Head, usePage, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { User, Mail, ShieldCheck, Save, Loader2 } from 'lucide-vue-next';
+import { useI18n } from '@/lib/i18n';
 
+const { t } = useI18n();
 const user = usePage().props.auth.user;
 
 const form = useForm({
