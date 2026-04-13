@@ -117,7 +117,7 @@ const handleExport = () => {
 };
 
 const deletePosition = (id) => {
-    if (confirm('Шумо мутмаин ҳастед, ки ин вазифаро нест кардан мехоҳед?')) {
+    if (confirm(t('common.confirmDelete'))) {
         router.delete(`/positions/${id}`);
     }
 };
@@ -268,9 +268,9 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_po
         <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--background))]/80 backdrop-blur-sm p-4">
             <div class="w-full max-w-md bg-[hsl(var(--card))] rounded-2xl shadow-xl overflow-hidden border border-[hsl(var(--border))]">
                 <div class="p-6 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))]/10">
-                    <h2 class="text-lg font-bold">{{ isEditing ? 'Дараҷаи навро иваз кунед' : 'Дараҷаи навро созед' }}</h2>
+                    <h2 class="text-lg font-bold">{{ isEditing ? t('positions.modal.editTitle') : t('positions.modal.addTitle') }}</h2>
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase font-bold tracking-widest">
-                        {{ isEditing ? 'Таҳрири маълумоти мансаб' : 'Раванди кирояи навро оғоз кунед' }}
+                        {{ isEditing ? t('positions.modal.editSubtitle') : t('positions.modal.addSubtitle') }}
                     </p>
                 </div>
                 <form @submit.prevent="submitForm" class="p-6 space-y-4">
@@ -280,22 +280,22 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_po
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.department') }}</label>
-                        <input v-model="form.department" list="departments-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="Интихоби шӯъба" autocomplete="off" />
+                        <input v-model="form.department" list="departments-list" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" :placeholder="t('positions.modal.deptPlaceholder')" autocomplete="off" />
                         <datalist id="departments-list">
                             <option v-for="dept in departments" :key="dept.id" :value="dept.name"></option>
                         </datalist>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Статус</label>
+                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.status') }}</label>
                         <select v-model="form.status" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
-                            <option value="vacant">Холӣ</option>
-                            <option value="filled">Пур шуд</option>
-                            <option value="on_hold">Тавақкуф</option>
+                            <option value="vacant">{{ t('common.vacant') }}</option>
+                            <option value="filled">{{ t('common.filled') }}</option>
+                            <option value="on_hold">{{ t('common.onHold') }}</option>
                         </select>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">Малакаҳо</label>
-                        <input v-model="form.skills" placeholder="Малакаҳоро ворид кунед" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
+                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('positions.modal.skillsLabel') }}</label>
+                        <input v-model="form.skills" :placeholder="t('positions.modal.skillsPlaceholder')" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
                     </div>
 
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-[hsl(var(--border))] mt-6">

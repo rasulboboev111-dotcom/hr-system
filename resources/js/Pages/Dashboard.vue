@@ -23,32 +23,32 @@ const metrics = computed(() => [
     {
         title: t('dashboard.totalEmployees'),
         value: String(props.totalEmployees),
-        change: '+4.1%',
-        trend: 'up',
+        change: '',
+        trend: '',
         icon: Users,
         color: 'bg-blue-600'
     },
     {
         title: t('dashboard.activeVacancies'),
         value: String(props.activeVacancies),
-        change: '+2',
-        trend: 'up',
+        change: '',
+        trend: '',
         icon: Briefcase,
         color: 'bg-emerald-600'
     },
     {
         title: t('dashboard.fillRate'),
         value: `${props.fillRate}%`,
-        change: '+1.2%',
-        trend: 'up',
+        change: '',
+        trend: '',
         icon: Target,
         color: 'bg-amber-600'
     },
     {
         title: t('dashboard.turnover'),
-        value: '1.8%',
-        change: '-0.5%',
-        trend: 'down',
+        value: `${props.turnover}%`,
+        change: '',
+        trend: '',
         icon: TrendingUp,
         color: 'bg-rose-600'
     }
@@ -86,11 +86,11 @@ const performers = computed(() => props.topPerformers || []);
                     </div>
                     <div class="px-6 pb-6">
                         <div class="text-3xl font-bold tracking-tight">{{ metric.value }}</div>
-                        <div class="flex items-center mt-3 text-[10px] font-bold">
+                        <div v-if="metric.change" class="flex items-center mt-3 text-[10px] font-bold">
                             <span v-if="metric.trend === 'up'" class="flex items-center text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
                                 <ArrowUpRight class="h-3 w-3 mr-1" /> {{ metric.change }}
                             </span>
-                            <span v-else class="flex items-center text-rose-600 bg-rose-50 px-2 py-1 rounded-full border border-rose-100">
+                            <span v-else-if="metric.trend === 'down'" class="flex items-center text-rose-600 bg-rose-50 px-2 py-1 rounded-full border border-rose-100">
                                 <ArrowDownRight class="h-3 w-3 mr-1" /> {{ metric.change }}
                             </span>
                             <span class="text-[hsl(var(--muted-foreground))]/60 ml-3">{{ t('dashboard.vsLastMonth') }}</span>

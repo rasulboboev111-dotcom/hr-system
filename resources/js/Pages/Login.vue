@@ -16,7 +16,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Login" />
+    <Head :title="t('auth.loginTitle')" />
     
     <div class="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-[hsl(var(--card))] rounded-2xl shadow-xl border border-[hsl(var(--border))] overflow-hidden flex flex-col">
@@ -36,7 +36,7 @@ const submit = () => {
                         <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('auth.email') }}</label>
                         <div class="relative">
                             <Mail class="absolute left-3 top-2.5 h-5 w-5 text-[hsl(var(--muted-foreground))]/60" />
-                            <input v-model="form.email" type="email" required autofocus class="pl-10 h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="name@siizi.tj" />
+                            <input v-model="form.email" type="email" required autofocus class="pl-10 h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" :placeholder="t('auth.email')" />
                         </div>
                         <p v-if="form.errors.email" class="text-xs text-rose-500 font-medium">
                             {{ form.errors.email === 'The provided credentials do not match our records.' ? t('auth.failed') : form.errors.email }}
@@ -50,8 +50,6 @@ const submit = () => {
                             <input v-model="form.password" type="password" required class="pl-10 h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="••••••••" />
                         </div>
                     </div>
-
-
 
                     <button type="submit" :disabled="form.processing" class="w-full h-10 flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-widest bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-lg shadow-[hsl(var(--primary))]/20 hover:bg-[hsl(var(--primary))]/90 disabled:opacity-50 mt-4">
                         <span v-if="form.processing">{{ t('auth.loggingIn') }}</span>

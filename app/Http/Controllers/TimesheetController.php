@@ -14,7 +14,7 @@ class TimesheetController extends Controller
     public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_timesheet')) {
-            abort(403, 'Шумо ҳуқуқи дидани ҷадвали ҳузурро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = Employee::query();
@@ -41,7 +41,7 @@ class TimesheetController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('edit_timesheet')) {
-            abort(403, 'Шумо ҳуқуқи таҳрири ҷадвали ҳузурро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $data = $request->validate([
@@ -57,7 +57,11 @@ class TimesheetController extends Controller
 
         $employee = Employee::firstOrCreate(
             ['name' => $firstName, 'last_name' => $lastName],
-            ['status' => 'Active', 'department' => $data['department'] ?? null]
+            [
+                'email' => strtolower($firstName) . '.' . strtolower($lastName) . '@hr.internal',
+                'status' => 'Active', 
+                'department' => $data['department'] ?? __('common.unknown')
+            ]
         );
 
         Attendance::updateOrCreate(
@@ -80,7 +84,7 @@ class TimesheetController extends Controller
     public function exportCsv(Request $request)
     {
         if (!$request->user()->hasPermission('export_timesheet')) {
-            abort(403, 'Шумо ҳуқуқи экспорти ҷадвали ҳузурро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $employees = Employee::all();
@@ -104,9 +108,9 @@ class TimesheetController extends Controller
             $file = fopen('php://output', 'w');
             
             // Prepend BOM to the first header element to avoid column shift
-            $header = ["\xEF\xBB\xBF" . 'Корманд'];
+            $header = ["\xEF\xBB\xBF" . __('timesheet.employee')];
             for ($d = 1; $d <= 31; $d++) { $header[] = (string)$d; }
-            $header[] = 'Соатҳои умумӣ';
+            $header[] = __('common.totalHours');
             fputcsv($file, $header, ';');
 
             foreach ($employees as $emp) {
@@ -135,7 +139,7 @@ class TimesheetController extends Controller
     public function importCsv(Request $request)
     {
         if (!$request->user()->hasPermission('import_timesheet')) {
-            abort(403, 'Шумо ҳуқуқи импорти маълумотро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $request->validate([
@@ -221,9 +225,12 @@ class TimesheetController extends Controller
             // If still not found, only then create a new one to avoid chaos
             if (!$employee) {
                 $nameParts = explode(' ', $nameStr, 2);
+                $firstName = $nameParts[0];
+                $lastName = $nameParts[1] ?? '';
                 $employee = Employee::create([
-                    'name' => $nameParts[0],
-                    'last_name' => $nameParts[1] ?? '',
+                    'name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => strtolower($firstName) . '.' . strtolower($lastName) . '@hr.internal',
                     'status' => 'active'
                 ]);
             }

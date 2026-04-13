@@ -30,11 +30,15 @@ export const translations = {
       update: "Навсозӣ",
       details: "Тафсилот",
       pending: "Дар интизорӣ",
-      vacant: "Холӣ",
+      vacant: "Вакансия",
       filled: "Пур шуд",
-      onHold: "Боздошт",
+      onHold: "Тавақкуф",
       inactive: "Ғайрифаъол",
-      importSuccess: "Импорт бо муваффақият анҷом шуд"
+      importSuccess: "Импорт бомуваффақият анҷом ёфт",
+      confirmDelete: "Оё мутмаин ҳастед? Ин амалро баргардонидан ғайриимкон аст.",
+      yes: "Ҳа",
+      no: "Не",
+      currency: "TJS"
     },
     employees: {
       modal: {
@@ -94,8 +98,19 @@ export const translations = {
       allowedActions: "Амалҳои иҷозатдодашуда",
       roleDescription: "Ин нақш чӣ кор карда метавонад?",
       permissionDescription: "Ин ҳуқуқ кадом имкониятро медиҳад?",
-      roleName: "Номи нақш",
-      roleKey: "Калиди нақш (ID)"
+      roleKey: "Калиди нақш (ID)",
+      editUser: "Таҳрири истифодабаранда",
+      editUserSubtitle: "Маълумотро иваз кунед",
+      addUserSubtitle: "Маълумоти истифодабарандаи навро ворид кунед",
+      passwordEditNotice: "аз нав нависед ё холӣ гузоред",
+      editRole: "Таҳрири нақш",
+      addRoleSubtitle: "Нақши навро эҷод кунед",
+      editRoleSubtitle: "Маълумоти нақшро иваз кунед",
+      roleIdLabel: "Идентификатор (ID)",
+      roleNameLabel: "Номи Нақш",
+      descriptionLabel: "Тавсиф",
+      permissionsLabel: "Ҳуқуқҳои дастрасӣ (Permissions)",
+      importCsv: "Импорти CSV"
     },
     departments: {
       title: "Шуъбаҳо",
@@ -130,6 +145,15 @@ export const translations = {
         id: "Рақами мансаб",
         title: "Номи мансаб",
         skills: "Малакаҳо"
+      },
+      modal: {
+        addTitle: "Дараҷаи навро созед",
+        editTitle: "Дараҷаро таҳрир кунед",
+        addSubtitle: "Раванди кирояи навро оғоз кунед",
+        editSubtitle: "Таҳрири маълумоти мансаб",
+        deptPlaceholder: "Интихоби шӯъба",
+        skillsLabel: "Малакаҳо",
+        skillsPlaceholder: "Малакаҳоро ворид кунед"
       }
     },
     recruitment: {
@@ -262,6 +286,44 @@ export const translations = {
       dbConnected: "Базаи маълумот пайвастшуда",
       authServiceActive: "Хидмати Auth фаъол"
     },
+    profile: {
+      title: "Профил",
+      logout: "Баромадан",
+      adminProfile: "Профили Админ",
+      manageAccount: "Идоракунии маълумоти ҳисоб",
+      email: "Почтаи электронӣ (Email)",
+      username: "Логин (Username)",
+      newPassword: "Рамзи нав",
+      passwordNotice: "Холӣ монед, агар иваз кардан нахоҳед"
+    },
+    settings: {
+      title: "Танзимоти система",
+      subtitle: "Танзим кардани афзалиятҳои барнома",
+      general: "Умумӣ",
+      security: "Амният",
+      notifications: "Огоҳиномаҳо",
+      appearance: "Намуди зоҳирӣ",
+      generalPrefs: "Афзалиятҳои умумӣ",
+      companyName: "Номи ширкат",
+      theme: "Мавзуъ",
+      systemDefault: "Пешфарзи система",
+      light: "Рӯшан",
+      dark: "Торик"
+    },
+    months: ["Январ", "Феврал", "Март", "Апрел", "Май", "Июн", "Июл", "Август", "Сентябр", "Октябр", "Ноябр", "Декабр"],
+    weekdays: ["Яш", "Ду", "Се", "Чо", "Пш", "Ҷу", "Ша"],
+    holidays: {
+      '01-01': 'Соли нав',
+      '03-08': 'Рӯзи модар',
+      '03-21': 'Наврӯз',
+      '03-22': 'Наврӯз',
+      '03-23': 'Наврӯз',
+      '03-24': 'Наврӯз',
+      '05-09': 'Рӯзи Ғалаба',
+      '06-27': 'Рӯзи Ваҳдати миллӣ',
+      '09-09': 'Рӯзи Истиқлолият',
+      '11-06': 'Рӯзи Конститутсия',
+    },
     audit: {
       title: "Аудити амалҳо",
       subtitle: "Журнали пурраи фаъолияти истифодабарандагон",
@@ -342,7 +404,11 @@ export const translations = {
       filled: "Занято",
       onHold: "Приостановлено",
       inactive: "Неактивен",
-      importSuccess: "Импорт успешно завершен"
+      importSuccess: "Импорт успешно завершен",
+      confirmDelete: "Вы уверены? Это действие нельзя отменить.",
+      yes: "Да",
+      no: "Нет",
+      currency: "TJS"
     },
     employees: {
       modal: {
@@ -402,8 +468,19 @@ export const translations = {
       allowedActions: "Разрешенные действия",
       roleDescription: "Что позволяет эта роль?",
       permissionDescription: "Какую возможность дает это право?",
-      roleName: "Название роли",
-      roleKey: "Ключ роли (ID)"
+      roleKey: "Ключ роли (ID)",
+      editUser: "Редактировать пользователя",
+      editUserSubtitle: "Измените данные пользователя",
+      addUserSubtitle: "Введите данные нового пользователя",
+      passwordEditNotice: "введите заново или оставьте пустым",
+      editRole: "Редактировать роль",
+      addRoleSubtitle: "Создать новую роль",
+      editRoleSubtitle: "Измените данные роли",
+      roleIdLabel: "Идентификатор (ID)",
+      roleNameLabel: "Название роли",
+      descriptionLabel: "Описание",
+      permissionsLabel: "Права доступа (Permissions)",
+      importCsv: "Импорт CSV"
     },
     departments: {
       title: "Отделы",
@@ -438,6 +515,15 @@ export const translations = {
         id: "ID Должности",
         title: "Название должности",
         skills: "Навыки"
+      },
+      modal: {
+        addTitle: "Создать новую должность",
+        editTitle: "Редактировать должность",
+        addSubtitle: "Начните процесс найма",
+        editSubtitle: "Измените данные должности",
+        deptPlaceholder: "Выберите отдел",
+        skillsLabel: "Навыки",
+        skillsPlaceholder: "Введите навыки"
       }
     },
     recruitment: {
@@ -613,6 +699,42 @@ export const translations = {
       newValue: "Новое значение",
       clear: "Очистить",
       clearConfirm: "Вы уверены, что хотите удалить весь журнал аудита?"
+    },
+    profile: {
+      title: "Профиль",
+      logout: "Выйти",
+      adminProfile: "Профиль Админа",
+      manageAccount: "Управление данными аккаунта",
+      email: "Электронная почта (Email)",
+      username: "Логин (Username)",
+      newPassword: "Новый пароль",
+      passwordNotice: "Оставьте пустым, если не хотите менять"
+    },
+    settings: {
+      title: "Настройки системы",
+      subtitle: "Настройка предпочтений приложения",
+      general: "Общие",
+      security: "Безопасность",
+      notifications: "Уведомления",
+      appearance: "Внешний вид",
+      generalPrefs: "Общие настройки",
+      companyName: "Название компании",
+      theme: "Тема",
+      systemDefault: "Системная тема",
+      light: "Светлая",
+      dark: "Темная"
+    },
+    months: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+    weekdays: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+    holidays: {
+      '01-01': 'Новый год',
+      '01-07': 'Рождество',
+      '02-23': 'День защитника Отечества',
+      '03-08': 'Женский день',
+      '05-01': 'Праздник труда',
+      '05-09': 'День Победы',
+      '06-12': 'День России',
+      '11-04': 'День народного единства',
     }
   },
   en: {
@@ -710,8 +832,19 @@ export const translations = {
       allowedActions: "Allowed Actions",
       roleDescription: "What can this role do?",
       permissionDescription: "What does this permission enable?",
-      roleName: "Role Name",
-      roleKey: "Role Key (ID)"
+      roleKey: "Role Key (ID)",
+      editUser: "Edit User",
+      editUserSubtitle: "Update user information",
+      addUserSubtitle: "Enter new user information",
+      passwordEditNotice: "re-type or leave blank",
+      editRole: "Edit Role",
+      addRoleSubtitle: "Create a new role",
+      editRoleSubtitle: "Update role information",
+      roleIdLabel: "Identifier (ID)",
+      roleNameLabel: "Role Name",
+      descriptionLabel: "Description",
+      permissionsLabel: "Permissions",
+      importCsv: "Import CSV"
     },
     departments: {
       title: "Departments",
@@ -746,6 +879,15 @@ export const translations = {
         id: "Position ID",
         title: "Position Title",
         skills: "Skills"
+      },
+      modal: {
+        addTitle: "Create New Position",
+        editTitle: "Edit Position",
+        addSubtitle: "Start a new recruitment process",
+        editSubtitle: "Change position details",
+        deptPlaceholder: "Select department",
+        skillsLabel: "Skills",
+        skillsPlaceholder: "Enter skills"
       }
     },
     recruitment: {
@@ -832,7 +974,10 @@ export const translations = {
         editSubmit: "Submit Edit",
         fullDelete: "Delete completely"
       },
-      confirmDelete: "Are you sure? This action cannot be undone."
+      confirmDelete: "Are you sure? This action cannot be undone.",
+      yes: "Yes",
+      no: "No",
+      currency: "TJS"
     },
     payroll: {
       title: "Payroll Management",
@@ -921,6 +1066,37 @@ export const translations = {
       newValue: "New Value",
       clear: "Clear All",
       clearConfirm: "Are you sure you want to delete all audit logs?"
+    },
+    profile: {
+      title: "Profile",
+      logout: "Logout",
+      adminProfile: "Admin Profile",
+      manageAccount: "Account Management",
+      email: "Email Address",
+      username: "Username",
+      newPassword: "New Password",
+      passwordNotice: "Leave blank to keep current"
+    },
+    settings: {
+      title: "System Settings",
+      subtitle: "Configure application preferences",
+      general: "General",
+      security: "Security",
+      notifications: "Notifications",
+      appearance: "Appearance",
+      generalPrefs: "General Preferences",
+      companyName: "Company Name",
+      theme: "Theme",
+      systemDefault: "System Default",
+      light: "Light",
+      dark: "Dark"
+    },
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    holidays: {
+      '01-01': 'New Year',
+      '01-02': 'New Year',
+      '12-25': 'Christmas',
     }
   }
 };

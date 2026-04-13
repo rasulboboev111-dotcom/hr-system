@@ -13,7 +13,7 @@ class DepartmentController extends Controller
     public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_departments')) {
-            abort(403, 'Шумо ҳуқуқи дидани шӯъбаҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = Department::query();
@@ -62,7 +62,7 @@ class DepartmentController extends Controller
                 'employees' => $employeesCount,
                 'vacancies' => $vacanciesCount,
                 'fillRate' => $fillRate,
-                'budget' => number_format((float)$budget) . ' TJ'
+                'budget' => number_format((float)$budget) . ' ' . __('common.currency')
             ];
         });
 
@@ -83,7 +83,7 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('add_departments')) {
-            abort(403, 'Шумо ҳуқуқи илова кардани шӯъбаҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -107,7 +107,7 @@ class DepartmentController extends Controller
     public function update(Request $request, Department $department)
     {
         if (!$request->user()->hasPermission('edit_departments')) {
-            abort(403, 'Шумо ҳуқуқи таҳрир кардани шӯъбаҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -131,7 +131,7 @@ class DepartmentController extends Controller
     public function destroy(Request $request, Department $department)
     {
         if (!$request->user()->hasPermission('delete_departments')) {
-            abort(403, 'Шумо ҳуқуқи нест кардани шӯъбаҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $id = $department->id;

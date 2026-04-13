@@ -74,12 +74,12 @@ const logout = () => {
                         {{ t('menu.admin') }}
                     </div>
                     <Link href="/profile" class="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-[hsl(var(--muted))] transition-colors">
-                        <User class="h-4 w-4" /> Профил
+                        <User class="h-4 w-4" /> {{ t('profile.title') }}
                     </Link>
 
                     <div class="border-t border-[hsl(var(--border))]"></div>
                     <button @click="logout" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-500 font-medium hover:bg-rose-50 transition-colors">
-                        <LogOut class="h-4 w-4" /> Баромадан
+                        <LogOut class="h-4 w-4" /> {{ t('profile.logout') }}
                     </button>
                 </div>
             </div>

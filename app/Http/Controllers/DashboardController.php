@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $turnover = $totalEmployees > 0 ? round(($departed / $totalEmployees) * 100, 1) : 0;
         
         $topPerformers = Employee::where('status', 'active')->take(3)->get()->map(function($emp) {
-            $emp->performance_score = rand(92, 99);
+            $emp->performance_score = 100; // Default until real performance tracking is added
             return $emp;
         })->sortByDesc('performance_score')->values();
 
@@ -35,7 +35,7 @@ class DashboardController extends Controller
             'topPerformers' => $topPerformers,
             'quickStats' => [
                 'newEmployees' => $newEmployees,
-                'pendingRequests' => rand(2, 5), // Placeholder
+                'pendingRequests' => 0, // No longer random
                 'scheduledInterviews' => $scheduledInterviews,
             ]
         ]);

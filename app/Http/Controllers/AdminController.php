@@ -13,7 +13,7 @@ class AdminController extends Controller
     public function usersIndex(Request $request)
     {
         if (!$request->user()->hasPermission('view_users')) {
-            abort(403, 'Шумо ҳуқуқи дидани корбаронро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = User::query();
@@ -42,7 +42,7 @@ class AdminController extends Controller
     public function storeRole(Request $request)
     {
         if (!$request->user()->hasPermission('manage_roles')) {
-            abort(403, 'Шумо ҳуқуқи идораи нақшҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
         $data = $request->validate([
             'id' => 'required|string',
@@ -77,7 +77,7 @@ class AdminController extends Controller
     public function destroyRole(Request $request, $id)
     {
         if (!$request->user()->hasPermission('manage_roles')) {
-            abort(403, 'Шумо ҳуқуқи идораи нақшҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
         
         if ($id === 'admin') {
@@ -101,7 +101,7 @@ class AdminController extends Controller
     public function storePermission(Request $request)
     {
         if (!$request->user()->hasPermission('manage_roles')) {
-            abort(403, 'Шумо ҳуқуқи идораи нақшҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $data = $request->validate([
@@ -117,7 +117,7 @@ class AdminController extends Controller
         // Check for duplicate permission id
         foreach ($rolesData['permissions'] as $perm) {
             if ($perm['id'] === $data['id']) {
-                return redirect()->back()->withErrors(['error' => 'Ин ҳуқуқ аллакай мавҷуд аст.']);
+                return redirect()->back()->withErrors(['error' => __('auth.permission_exists')]);
             }
         }
 
@@ -131,7 +131,7 @@ class AdminController extends Controller
     public function storeUser(Request $request)
     {
         if (!$request->user()->hasPermission('add_users')) {
-            abort(403, 'Шумо ҳуқуқи иловаи корбаронро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $data = $request->validate([
@@ -167,7 +167,7 @@ class AdminController extends Controller
     public function updateUser(Request $request, User $user)
     {
         if (!$request->user()->hasPermission('edit_users')) {
-            abort(403, 'Шумо ҳуқуқи таҳрири корбаронро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $data = $request->validate([
@@ -208,7 +208,7 @@ class AdminController extends Controller
     public function destroyUser(Request $request, User $user)
     {
         if (!$request->user()->hasPermission('delete_users')) {
-            abort(403, 'Шумо ҳуқуқи нест кардани корбаронро надоред.');
+            abort(403, __('auth.access_denied'));
         }
         
         $email = $user->email;
@@ -229,7 +229,7 @@ class AdminController extends Controller
     public function exportCsv(Request $request)
     {
         if (!$request->user()->hasPermission('export_users')) {
-            abort(403, 'Шумо ҳуқуқи экспорти корбаронро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $users = User::all();
@@ -246,7 +246,15 @@ class AdminController extends Controller
         $callback = function() use ($users) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['ID', 'Логин', 'Ном', 'Насаб', 'Почтаи электронӣ', 'Нақш', 'Рамз'], ';');
+            fputcsv($file, [
+                'ID', 
+                __('auth.username'), 
+                __('common.name'), 
+                __('common.lastName'), 
+                __('common.email'), 
+                __('auth.role'), 
+                __('auth.password')
+            ], ';');
             foreach ($users as $u) {
                 fputcsv($file, [
                     $u->id,
@@ -270,7 +278,7 @@ class AdminController extends Controller
     public function importCsv(Request $request)
     {
         if (!$request->user()->hasPermission('add_users')) {
-            abort(403, 'Шумо ҳуқуқи иловаи корбаронро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $request->validate([
@@ -385,7 +393,7 @@ class AdminController extends Controller
     {
         // Require direct admin role or specific permission for audit
         if (!$request->user()->hasPermission('view_audit')) {
-            abort(403, 'Шумо ҳуқуқи дидани аудитро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = AuditLog::orderBy('timestamp', 'desc');
@@ -465,7 +473,7 @@ class AdminController extends Controller
     {
         $userRoles = $request->user()->role_ids ?? [];
         if (!in_array('admin', $userRoles)) {
-            abort(403, 'Шумо ҳуқуқи тоза кардани аудитро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         AuditLog::truncate();

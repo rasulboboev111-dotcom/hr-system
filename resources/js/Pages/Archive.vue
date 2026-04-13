@@ -196,7 +196,7 @@ const canDelete = computed(() => page.props.auth.permissions.includes('delete_ar
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-1">
                                             <Calendar class="h-3 w-3 text-[hsl(var(--muted-foreground))]" />
-                                            2023 - {{ new Date(emp.deleted_at).getFullYear() }}
+                                            {{ emp.joined_date ? new Date(emp.joined_date).getFullYear() : '2023' }} - {{ new Date(emp.deleted_at).getFullYear() }}
                                         </div>
                                     </td>
                                     <td class="italic text-[hsl(var(--muted-foreground))] px-6 py-4">{{ t('archive.laidOff') }}</td>

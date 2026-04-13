@@ -12,7 +12,7 @@ class PositionController extends Controller
     public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_positions')) {
-            abort(403, 'Шумо ҳуқуқи дидани мансабҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = Position::query();
@@ -54,7 +54,7 @@ class PositionController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('add_positions')) {
-            abort(403, 'Шумо ҳуқуқи илова кардани мансабҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -87,7 +87,7 @@ class PositionController extends Controller
     public function update(Request $request, Position $position)
     {
         if (!$request->user()->hasPermission('edit_positions')) {
-            abort(403, 'Шумо ҳуқуқи таҳрир кардани мансабҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -120,7 +120,7 @@ class PositionController extends Controller
     public function destroy(Request $request, Position $position)
     {
         if (!$request->user()->hasPermission('delete_positions')) {
-            abort(403, 'Шумо ҳуқуқи нест кардани мансабҳоро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $id = $position->id;
@@ -142,7 +142,7 @@ class PositionController extends Controller
     public function exportCsv(Request $request)
     {
         if (!$request->user()->hasPermission('export_positions')) {
-            abort(403, 'Шумо ҳуқуқи экспорти маълумотро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $positions = Position::all();
@@ -159,7 +159,14 @@ class PositionController extends Controller
         $callback = function() use ($positions) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['№', 'Номгӯй', 'Шӯъба', 'Ҳолат', 'Маош', 'Малакаҳо'], ';');
+            fputcsv($file, [
+                __('common.number'), 
+                __('positions.table.title'), 
+                __('common.department'), 
+                __('common.status'), 
+                __('common.salary'), 
+                __('positions.table.skills')
+            ], ';');
             foreach ($positions as $index => $pos) {
                 $skills = json_decode($pos->required_skills, true);
                 $skillsStr = is_array($skills) ? implode(', ', $skills) : ($pos->required_skills ?? '');

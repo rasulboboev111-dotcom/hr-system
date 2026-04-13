@@ -26,7 +26,7 @@ const payrollData = computed(() => {
     const record = props.payroll_records.find(r => r.employee_id === e.id);
     return {
       ...e,
-      salary: record ? record.salary : (e.salary || 8500),
+      salary: record ? record.salary : (e.salary || 0),
       hasRecord: !!record,
       adjustment: 0
     };
@@ -158,7 +158,7 @@ const handleImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    if (!confirm(t('common.confirm') || 'Confirm import?')) {
+    if (!confirm(t('common.confirm'))) {
         event.target.value = '';
         return;
     }
@@ -171,11 +171,11 @@ const handleImport = (event) => {
         preserveState: true,
         forceFormData: true,
         onSuccess: () => {
-            alert(t('common.importSuccess') || 'Import completed successfully');
+            alert(t('common.importSuccess'));
             event.target.value = '';
         },
         onError: () => {
-            alert(t('common.error') || 'Error importing file');
+            alert(t('common.error'));
             event.target.value = '';
         }
     });
@@ -207,7 +207,7 @@ const handleEdit = (emp) => {
 
 const handleDelete = (emp) => {
     activeDropdown.value = null;
-    if(confirm(t('common.confirm') || 'Are you sure?')) {
+    if(confirm(t('common.confirm'))) {
         router.delete(`/payroll/${emp.id}`, {
             preserveScroll: true
         });
@@ -254,8 +254,7 @@ const canImport = computed(() => page.props.auth.permissions.includes('add_payro
                         <Wallet class="h-4 w-4 text-[hsl(var(--primary))] group-hover:scale-110 transition-transform" />
                     </div>
                     <div class="p-6 pt-0">
-                        <div class="text-2xl font-bold">{{ totalPayroll.toLocaleString() }} TJS</div>
-                        <p class="text-[10px] text-emerald-600 font-bold mt-1">+2.4% <span class="text-[hsl(var(--muted-foreground))] font-normal">{{ t('dashboard.vsLastMonth') }}</span></p>
+                        <div class="text-2xl font-bold">{{ totalPayroll.toLocaleString() }} {{ t('common.currency') }}</div>
                     </div>
                 </div>
 
@@ -333,10 +332,10 @@ const canImport = computed(() => page.props.auth.permissions.includes('add_payro
                                             </button>
                                             <div v-if="activeDropdown === emp.id" class="absolute right-0 top-8 w-36 bg-white border border-[hsl(var(--border))] rounded-xl shadow-xl z-50 py-1 overflow-hidden">
                                                 <button v-if="canEdit" @click="handleEdit(emp)" class="w-full text-left px-4 py-2.5 hover:bg-[hsl(var(--muted))]/50 text-[11px] font-bold text-[hsl(var(--foreground))]/80 flex items-center gap-2 transition-colors uppercase tracking-widest">
-                                                    <Edit2 class="h-3.5 w-3.5 text-[hsl(var(--primary))]" /> {{ t('common.edit') || 'Edit' }}
+                                                    <Edit2 class="h-3.5 w-3.5 text-[hsl(var(--primary))]" /> {{ t('common.edit') }}
                                                 </button>
                                                 <button v-if="canDelete" @click="handleDelete(emp)" class="w-full text-left px-4 py-2.5 hover:bg-red-50 text-[11px] font-bold text-red-600 flex items-center gap-2 transition-colors uppercase tracking-widest">
-                                                    <Trash2 class="h-3.5 w-3.5" /> {{ t('common.delete') || 'Delete' }}
+                                                    <Trash2 class="h-3.5 w-3.5" /> {{ t('common.delete') }}
                                                 </button>
                                             </div>
                                         </div>

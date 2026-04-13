@@ -13,7 +13,7 @@ class ArchiveController extends Controller
     public function index(Request $request)
     {
         if (!$request->user()->hasPermission('view_archive') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи дидани архивро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = Employee::onlyTrashed();
@@ -40,7 +40,7 @@ class ArchiveController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('add_archive') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи илова ба архивро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -62,7 +62,7 @@ class ArchiveController extends Controller
     public function update(Request $request, $id)
     {
         if (!$request->user()->hasPermission('edit_archive') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи таҳрири архивро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -82,7 +82,7 @@ class ArchiveController extends Controller
     public function destroy(Request $request, $id)
     {
         if (!$request->user()->hasPermission('delete_archive') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи тозакунии архивро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $employee = Employee::withTrashed()->findOrFail($id);

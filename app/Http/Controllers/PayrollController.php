@@ -14,7 +14,7 @@ class PayrollController extends Controller
     public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_payroll')) {
-            abort(403, 'Шумо ҳуқуқи дидани маошро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = Employee::query();
@@ -40,7 +40,7 @@ class PayrollController extends Controller
     public function storeBonus(Request $request)
     {
         if (!$request->user()->hasPermission('add_payroll')) {
-            abort(403, 'Шумо ҳуқуқи илова кардани маълумоти маошро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $data = $request->validate([
@@ -58,9 +58,9 @@ class PayrollController extends Controller
         $employee = Employee::firstOrCreate(
             ['name' => $firstName, 'last_name' => $lastName],
             [
-                'email' => strtolower($firstName) . rand(100,999) . '@example.com',
-                'role' => $data['role'] ?? 'Unknown',
-                'department' => $data['department'] ?? 'Unknown',
+                'email' => strtolower($firstName) . '.' . strtolower($lastName) . '@hr.internal',
+                'role' => $data['role'] ?? __('common.unknown'),
+                'department' => $data['department'] ?? __('common.unknown'),
                 'status' => 'active'
             ]
         );
@@ -92,7 +92,7 @@ class PayrollController extends Controller
     public function exportCsv(Request $request)
     {
         if (!$request->user()->hasPermission('export_payroll')) {
-            abort(403, 'Шумо ҳуқуқи экспорти маълумоти маошро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $employees = Employee::all();
@@ -109,12 +109,18 @@ class PayrollController extends Controller
             $file = fopen('php://output', 'w');
             // UTF-8 BOM for Excel
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['№', 'Ном ва Насаб', 'Мансаб', 'Шӯъба', 'Маоши асосӣ'], ';');
+            fputcsv($file, [
+                __('common.number'), 
+                __('common.fullName'), 
+                __('common.role'), 
+                __('common.department'), 
+                __('payroll.mainSalary')
+            ], ';');
             $records = PayrollRecord::where('month_year', date('Y-m'))->get()->keyBy('employee_id');
 
             foreach ($employees as $index => $emp) {
                 // Determine salary
-                $salary = 8500;
+                $salary = $emp->salary ?? 0;
                 $record = $records->get($emp->id);
                 if ($record) {
                     $salary = $record->salary;
@@ -123,8 +129,8 @@ class PayrollController extends Controller
                 fputcsv($file, [
                     $index + 1,
                     $emp->name . ' ' . $emp->last_name,
-                    $emp->role ?? 'Маълум нест',
-                    $emp->department ?? 'Маълум нест',
+                    $emp->role ?? __('common.unknown'),
+                    $emp->department ?? __('common.unknown'),
                     $salary
                 ], ';');
             }
@@ -140,7 +146,7 @@ class PayrollController extends Controller
     public function importCsv(Request $request)
     {
         if (!$request->user()->hasPermission('add_payroll') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи импорти маълумоти маошро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $request->validate([
@@ -175,9 +181,9 @@ class PayrollController extends Controller
                 $employee = Employee::firstOrCreate(
                     ['name' => $firstName, 'last_name' => $lastName],
                     [
-                        'email' => strtolower($firstName) . rand(100,999) . '@example.com',
-                        'role' => $role === 'Маълум нест' ? 'Unknown' : $role,
-                        'department' => $department === 'Маълум нест' ? 'Unknown' : $department,
+                        'email' => strtolower($firstName) . '.' . strtolower($lastName) . '@hr.internal',
+                        'role' => (empty($role) || $role === 'Маълум нест' || $role === 'Неизвестно' || $role === 'Unknown') ? __('common.unknown') : $role,
+                        'department' => (empty($department) || $department === 'Маълум нест' || $department === 'Неизвестно' || $department === 'Unknown') ? __('common.unknown') : $department,
                         'status' => 'active'
                     ]
                 );
@@ -208,7 +214,7 @@ class PayrollController extends Controller
     public function destroy(Request $request, $id)
     {
         if (!$request->user()->hasPermission('delete_payroll') && !$request->user()->hasPermission('all')) {
-            abort(403, 'Шумо ҳуқуқи нест кардани маълумоти маошро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $currentMonth = now()->format('Y-m');

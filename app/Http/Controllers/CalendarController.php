@@ -12,7 +12,7 @@ class CalendarController extends Controller
     public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_calendar')) {
-            abort(403, 'Шумо ҳуқуқи дидани тақвимро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = CalendarEvent::query();
@@ -35,7 +35,7 @@ class CalendarController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('add_calendar_events')) {
-            abort(403, 'Шумо ҳуқуқи илова кардани ҳаводисро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $data = $request->validate([
@@ -62,7 +62,7 @@ class CalendarController extends Controller
     public function destroy(Request $request, CalendarEvent $event)
     {
         if (!$request->user()->hasPermission('delete_calendar_events')) {
-            abort(403, 'Шумо ҳуқуқи нест кардани ҳаводисро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $event->delete();

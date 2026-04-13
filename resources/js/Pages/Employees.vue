@@ -334,7 +334,7 @@ const deleteEmployee = (id) => {
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('employees.salaryLabel') }}</label>
-                            <input v-model="form.salary" type="number" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" placeholder="8500" />
+                            <input v-model="form.salary" type="number" class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" />
                         </div>
                     </div>
 

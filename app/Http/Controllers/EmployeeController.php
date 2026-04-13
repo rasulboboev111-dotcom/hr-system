@@ -11,7 +11,7 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         if (!$request->user()->hasPermission('view_employees')) {
-            abort(403, 'Шумо ҳуқуқи дидани кормандонро надоред.');
+            abort(403, __('auth.access_denied'));
         }
         $query = Employee::query();
 
@@ -45,7 +45,7 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('add_employees')) {
-            abort(403, 'Шумо ҳуқуқи илова кардани кормандонро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -68,7 +68,7 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee)
     {
         if (!$request->user()->hasPermission('edit_employees')) {
-            abort(403, 'Шумо ҳуқуқи таҳрир кардани кормандонро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $validated = $request->validate([
@@ -89,7 +89,7 @@ class EmployeeController extends Controller
     public function destroy(Request $request, Employee $employee)
     {
         if (!$request->user()->hasPermission('delete_employees')) {
-            abort(403, 'Шумо ҳуқуқи нест кардани кормандонро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $employee->delete();
@@ -99,7 +99,7 @@ class EmployeeController extends Controller
     public function exportCsv(Request $request)
     {
         if (!$request->user()->hasPermission('export_employees')) {
-            abort(403, 'Шумо ҳуқуқи экспорти маълумотро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $employees = Employee::all();
@@ -117,7 +117,15 @@ class EmployeeController extends Controller
             $file = fopen('php://output', 'w');
             // UTF-8 BOM for Excel
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['№', 'Ном', 'Насаб', 'Почтаи электронӣ', 'Мансаб', 'Шӯъба', 'Ҳолат'], ';');
+            fputcsv($file, [
+                __('common.number'), 
+                __('common.name'), 
+                __('common.lastName'), 
+                __('common.email'), 
+                __('common.role'), 
+                __('common.department'), 
+                __('common.status')
+            ], ';');
             foreach ($employees as $index => $emp) {
                 fputcsv($file, [
                     $index + 1,
@@ -141,7 +149,7 @@ class EmployeeController extends Controller
     public function importCsv(Request $request)
     {
         if (!$request->user()->hasPermission('import_employees')) {
-            abort(403, 'Шумо ҳуқуқи импорти маълумотро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $request->validate([

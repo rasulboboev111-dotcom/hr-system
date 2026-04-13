@@ -26,8 +26,8 @@ const submit = () => {
         <div class="space-y-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Профили Админ</h1>
-                    <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">Идоракунии маълумоти ҳисоб</p>
+                    <h1 class="text-2xl font-bold tracking-tight">{{ t('profile.adminProfile') }}</h1>
+                    <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('profile.manageAccount') }}</p>
                 </div>
             </div>
 
@@ -49,7 +49,7 @@ const submit = () => {
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label class="text-xs font-bold uppercase text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-                                        <Mail class="h-3 w-3" /> Почтаи электронӣ (Email)
+                                        <Mail class="h-3 w-3" /> {{ t('profile.email') }}
                                     </label>
                                     <input v-model="form.email" type="email" class="w-full h-10 px-3 rounded-lg border border-[hsl(var(--border))] bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]" />
                                     <div v-if="form.errors.email" class="text-xs text-rose-500">{{ form.errors.email }}</div>
@@ -57,7 +57,7 @@ const submit = () => {
 
                                 <div class="space-y-2">
                                     <label class="text-xs font-bold uppercase text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-                                        <User class="h-3 w-3" /> Логин (Username)
+                                        <User class="h-3 w-3" /> {{ t('profile.username') }}
                                     </label>
                                     <input v-model="form.username" type="text" class="w-full h-10 px-3 rounded-lg border border-[hsl(var(--border))] bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]" />
                                     <div v-if="form.errors.username" class="text-xs text-rose-500">{{ form.errors.username }}</div>
@@ -65,7 +65,7 @@ const submit = () => {
 
                                 <div class="space-y-2 md:col-span-2">
                                     <label class="text-xs font-bold uppercase text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-                                        <ShieldCheck class="h-3 w-3" /> Рамзи нав (Холӣ монед, агар иваз кардан нахоҳед)
+                                        <ShieldCheck class="h-3 w-3" /> {{ t('profile.newPassword') }} ({{ t('profile.passwordNotice') }})
                                     </label>
                                     <input v-model="form.password" type="password" class="w-full h-10 px-3 rounded-lg border border-[hsl(var(--border))] bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]" />
                                     <div v-if="form.errors.password" class="text-xs text-rose-500">{{ form.errors.password }}</div>
@@ -76,7 +76,7 @@ const submit = () => {
                                 <button type="submit" :disabled="form.processing" class="h-10 px-6 rounded-lg bg-[hsl(var(--primary))] text-primary-foreground font-bold text-sm tracking-wide flex text-white items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50">
                                     <Loader2 v-if="form.processing" class="h-4 w-4 animate-spin" />
                                     <Save v-else class="h-4 w-4" />
-                                    Сабт кардан
+                                    {{ t('common.save') }}
                                 </button>
                             </div>
                         </form>

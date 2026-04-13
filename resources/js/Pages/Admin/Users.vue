@@ -102,7 +102,7 @@ const submitRoleForm = () => {
 };
 
 const handleDeleteRole = (id) => {
-    if (confirm(t('common.confirmDelete') || 'Шумо мутмаин ҳастед?')) {
+    if (confirm(t('common.confirmDelete'))) {
         router.delete(`/admin/roles/${id}`, {
             preserveScroll: true
         });
@@ -110,20 +110,12 @@ const handleDeleteRole = (id) => {
 };
 
 const roles = computed(() => {
-    return props.rolesData?.roles?.length ? props.rolesData.roles : [
-        { id: 'admin', name: 'Администратор', description: 'Дастрасӣ пурра ба ҳамаи модулҳо', permissionIds: ['view_all', 'edit_all'] },
-        { id: 'hr_mgr', name: 'Мудири HR', description: 'Идораи кормандон ва давомотҳо', permissionIds: ['view_users', 'edit_users'] }
-    ];
+    return props.rolesData?.roles || [];
 });
 
 const permissions = computed(() => {
-    return props.rolesData?.permissions?.length ? props.rolesData.permissions : [
-        { id: 'view_all', name: 'Дидани ҳама', category: 'Умумӣ', description: 'Имкони дидани ҳамаи маълумот' },
-        { id: 'edit_all', name: 'Таҳрири ҳама', category: 'Умумӣ', description: 'Имкони таҳрири ҳамаи маълумот' }
-    ];
+    return props.rolesData?.permissions || [];
 });
-
-import { watch } from 'vue';
 
 const searchQuery = ref(props.filters?.search || '');
 
@@ -136,9 +128,7 @@ watch(searchQuery, (value) => {
 });
 
 const usersList = computed(() => {
-    return props.users.length ? props.users : [
-        { id: 1, username: 'admin', first_name: 'Super', last_name: 'Admin', email: 'admin@siizi.ru', roleIds: ['admin'] }
-    ];
+    return props.users || [];
 });
 
 const sortKey = ref(null);
@@ -218,7 +208,7 @@ const submitUserForm = () => {
 };
 
 const handleDeleteUser = (id) => {
-    if(confirm('Шумо мутмаин ҳастед, ки ин истифодабарандаро нест кардан мехоҳед?')) {
+    if(confirm(t('common.confirmDelete'))) {
         router.delete(`/admin/users/${id}`, { preserveScroll: true });
     }
 };
@@ -243,7 +233,7 @@ const handleDeleteUser = (id) => {
                 <div class="flex items-center gap-3">
                     <input v-if="canImport" type="file" ref="fileInputRef" accept=".csv" class="hidden" @change="handleImport" />
                     <button v-if="canImport" @click="fileInputRef.click()" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
-                        <UploadCloud class="h-4 w-4" /> Импорти CSV
+                        <UploadCloud class="h-4 w-4" /> {{ t('admin.importCsv') }}
                     </button>
                     <button v-if="canExport" @click="handleExport" class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-xs uppercase tracking-widest border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] gap-2">
                         <Download class="h-4 w-4" /> {{ t('common.export') }}
@@ -462,9 +452,9 @@ const handleDeleteUser = (id) => {
                         <UserPlus class="h-6 w-6 text-[hsl(var(--primary))]" />
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold">{{ isEditingUser ? 'Таҳрири истифодабаранда' : t('admin.addUser') }}</h2>
+                        <h2 class="text-xl font-bold">{{ isEditingUser ? t('admin.editUser') : t('admin.addUser') }}</h2>
                         <p class="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold tracking-widest mt-1">
-                            {{ isEditingUser ? 'Маълумотро иваз кунед' : 'Маълумоти истифодабарандаи навро ворид кунед' }}
+                            {{ isEditingUser ? t('admin.editUserSubtitle') : t('admin.addUserSubtitle') }}
                         </p>
                     </div>
                 </div>
@@ -488,7 +478,7 @@ const handleDeleteUser = (id) => {
                         <input v-model="form.email" type="email" class="h-11 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))] tracking-widest">{{ t('common.password') }} <span v-if="isEditingUser">(аз нав нависед ё холӣ гузоред)</span></label>
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))] tracking-widest">{{ t('common.password') }} <span v-if="isEditingUser">({{ t('admin.passwordEditNotice') }})</span></label>
                         <input type="password" v-model="form.password" :required="!isEditingUser" class="flex h-11 w-full rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
                     </div>
                     <div class="space-y-1.5">
@@ -517,27 +507,27 @@ const handleDeleteUser = (id) => {
                         <Shield class="h-6 w-6 text-[hsl(var(--primary))]" />
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold">{{ isEditingRole ? 'Таҳрири нақш' : (t('admin.addRole') || 'Иловаи Нақш') }}</h2>
+                        <h2 class="text-xl font-bold">{{ isEditingRole ? t('admin.editRole') : t('admin.addRole') }}</h2>
                         <p class="text-[10px] text-[hsl(var(--muted-foreground))] uppercase font-bold tracking-widest mt-1">
-                            {{ isEditingRole ? 'Маълумоти нақшро иваз кунед' : 'Нақши навро эҷод кунед' }}
+                            {{ isEditingRole ? t('admin.editRoleSubtitle') : t('admin.addRoleSubtitle') }}
                         </p>
                     </div>
                 </div>
                 <form @submit.prevent="submitRoleForm" class="p-6 space-y-5">
                     <div class="space-y-1.5">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Идентификатор (Масалан: admin)</label>
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('admin.roleIdLabel') }}</label>
                         <input v-model="roleForm.id" type="text" required :disabled="isEditingRole" :class="isEditingRole ? 'bg-[hsl(var(--muted))]/50' : ''" class="h-11 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Номи Нақш</label>
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('admin.roleNameLabel') }}</label>
                         <input v-model="roleForm.name" type="text" required class="h-11 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Тавсиф</label>
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('admin.descriptionLabel') }}</label>
                         <input v-model="roleForm.description" type="text" class="h-11 w-full text-sm rounded-xl border border-[hsl(var(--border))] bg-transparent px-4 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" />
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">Ҳуқуқҳои дастрасӣ (Permission IDs)</label>
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('admin.permissionsLabel') }}</label>
                         <div class="h-32 overflow-y-auto border border-[hsl(var(--border))] rounded-xl p-3 bg-transparent">
                             <label v-for="p in permissions" :key="p.id" class="flex items-center gap-2 mb-2 cursor-pointer">
                                 <input type="checkbox" v-model="roleForm.permissionIds" :value="p.id" class="rounded border-[hsl(var(--border))] text-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]" />

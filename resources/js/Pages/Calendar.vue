@@ -30,18 +30,9 @@ watch(searchQuery, (value) => {
 const page = usePage();
 const { t } = useI18n();
 
-const HOLIDAYS = {
-    '01-01': 'Соли нав',
-    '03-08': 'Рӯзи модар',
-    '03-21': 'Наврӯз',
-    '03-22': 'Наврӯз',
-    '03-23': 'Наврӯз',
-    '03-24': 'Наврӯз',
-    '05-09': 'Рӯзи Ғалаба',
-    '06-27': 'Рӯзи Ваҳдати миллӣ',
-    '09-09': 'Рӯзи Истиқлолият',
-    '11-06': 'Рӯзи Конститутсия',
-};
+const HOLIDAYS = computed(() => {
+    return t('holidays') || {};
+});
 
 const today = new Date();
 const currentMonth = ref(today.getMonth());
@@ -59,10 +50,10 @@ const events = computed(() => {
     
     return list.map(e => ({
         id: e.id,
-        time: '10:00', 
+        time: e.time || '--:--', 
         title: e.title,
         type: e.type,
-        participants: 1,
+        participants: e.participants || 0,
         date: e.date // useful for showing when searching
     }));
 });
@@ -76,8 +67,8 @@ const form = useForm({
     date: ''
 });
 
-const monthNames = ['Январ', 'Феврал', 'Март', 'Апрел', 'Май', 'Июн', 'Июл', 'Август', 'Сентябр', 'Октябр', 'Ноябр', 'Декабр'];
-const dayNames = ['Яш', 'Ду', 'Се', 'Чо', 'Пш', 'Ҷу', 'Ша'];
+const monthNames = computed(() => t('months'));
+const dayNames = computed(() => t('weekdays'));
 
 const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate());
 const firstDayOfMonth = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay());
@@ -97,13 +88,13 @@ const selectedDateStr = computed(() => {
     return `${m}-${d}`;
 });
 
-const selectedHoliday = computed(() => HOLIDAYS[selectedDateStr.value] || null);
+const selectedHoliday = computed(() => HOLIDAYS.value[selectedDateStr.value] || null);
 
 const isHoliday = (day) => {
     if (!day) return false;
     const m = String(currentMonth.value + 1).padStart(2, '0');
     const d = String(day).padStart(2, '0');
-    return !!HOLIDAYS[`${m}-${d}`];
+    return !!HOLIDAYS.value[`${m}-${d}`];
 };
 
 const isWeekend = (day) => {
@@ -142,7 +133,7 @@ const handleSaveEvent = () => {
 };
 
 const handleDeleteEvent = (id) => {
-    if(confirm('Мехоҳед ин чорабиниро нест кунед?')) {
+    if(confirm(t('common.confirmDelete'))) {
         router.delete(`/calendar/events/${id}`, { preserveScroll: true });
     }
 };
@@ -293,9 +284,9 @@ const canDelete = computed(() => page.props.auth.permissions.includes('delete_ca
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase font-bold">{{ t('calendar.eventType') }}</label>
                             <select v-model="form.type" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
-                                <option value="Meeting">Маҷлис</option>
-                                <option value="Interview">Мусоҳиба</option>
-                                <option value="Training">Омӯзиш</option>
+                                <option value="Meeting">{{ t('calendar.types.meeting') || 'Meeting' }}</option>
+                                <option value="Interview">{{ t('calendar.types.interview') || 'Interview' }}</option>
+                                <option value="Training">{{ t('calendar.types.training') || 'Training' }}</option>
                             </select>
                         </div>
                     </div>

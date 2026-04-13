@@ -131,7 +131,7 @@ const handleImport = (e) => {
             alert(t('timesheet.importError') + ': ' + Object.values(err).join('\n'));
         },
         onSuccess: () => {
-            alert(t('common.importSuccess') || 'Импорт бо муваффақият анҷом шуд');
+            alert(t('common.importSuccess'));
             // reset input
             if (fileInput.value) fileInput.value.value = '';
         }
@@ -173,7 +173,7 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                 </div>
                 <div class="flex gap-2 items-center">
                     <select v-model="selectedDepartment" class="min-w-[150px] h-9 px-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-[10px] font-bold uppercase focus:outline-none text-[hsl(var(--muted-foreground))]">
-                        <option value="">{{ t('common.all') || 'Все отделы' }}</option>
+                        <option value="">{{ t('common.all') }}</option>
                         <option v-for="dept in departments" :key="dept.id" :value="dept.name">{{ dept.name }}</option>
                     </select>
                     <button v-if="canEdit" @click="isAddOpen = true" class="h-9 px-3 inline-flex items-center gap-2 border border-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/5 uppercase font-bold text-[10px] rounded-lg">
@@ -297,14 +297,14 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                 <div class="p-6 border-b border-[hsl(var(--border))]">
                     <h2 class="text-xl font-bold flex items-center gap-2">
                         <UserCircle class="h-6 w-6 text-[hsl(var(--primary))]" />
-                        {{ t('timesheet.addEntry') || 'Иловаи сабти давомот' }}
+                        {{ t('timesheet.addEntry') }}
                     </h2>
                 </div>
                 <div class="p-6 grid gap-4">
                     <div class="space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.departments') || 'Шуъба' }}</label>
+                        <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('common.department') }}</label>
                         <select v-model="form.department" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none text-[hsl(var(--muted-foreground))]">
-                            <option value="">{{ t('common.all') || 'Ҳама' }}</option>
+                            <option value="">{{ t('common.all') }}</option>
                             <option v-for="dept in departments" :key="dept.id" :value="dept.name">{{ dept.name }}</option>
                         </select>
                     </div>
@@ -317,13 +317,13 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_ti
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('timesheet.dayOfMonth') || 'Рӯзи моҳ' }}</label>
+                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('timesheet.dayOfMonth') }}</label>
                             <select v-model="form.day" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
                                 <option v-for="d in daysInMonth" :key="d" :value="String(d)">{{ d }}</option>
                             </select>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('common.status') || 'Статус' }}</label>
+                            <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('common.status') }}</label>
                             <select v-model="form.status" class="h-10 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
                                 <option value="P">{{ t('timesheet.statusP') }}</option>
                                 <option value="L">{{ t('timesheet.statusL') }}</option>

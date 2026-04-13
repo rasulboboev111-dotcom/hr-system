@@ -13,7 +13,7 @@ class ScheduleController extends Controller
     public function index(Request $request)
     {
         if (!auth()->user()->hasPermission('view_schedule')) {
-            abort(403, 'Шумо ҳуқуқи дидани ҷадвалро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $query = Employee::query();
@@ -37,7 +37,7 @@ class ScheduleController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('add_schedule')) {
-            abort(403, 'Шумо ҳуқуқи илова кардани бастро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $data = $request->validate([
@@ -64,7 +64,7 @@ class ScheduleController extends Controller
     public function destroy(Request $request, Shift $shift)
     {
         if (!$request->user()->hasPermission('delete_schedule')) {
-            abort(403, 'Шумо ҳуқуқи нест кардани бастро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $shift->delete();
@@ -84,12 +84,20 @@ class ScheduleController extends Controller
     public function exportCsv(Request $request)
     {
         if (!$request->user()->hasPermission('export_schedule')) {
-            abort(403, 'Шумо ҳуқуқи экспорти ҷадвалро надоред.');
+            abort(403, __('auth.access_denied'));
         }
 
         $shifts = Shift::all();
         $employees = Employee::all()->keyBy('id');
-        $days = ['Душанбе', 'Сешанбе', 'Чоршанбе', 'Панҷшанбе', 'Ҷумъа', 'Шанбе', 'Якшанбе'];
+        $days = [
+            __('days.monday'), 
+            __('days.tuesday'), 
+            __('days.wednesday'), 
+            __('days.thursday'), 
+            __('days.friday'), 
+            __('days.saturday'), 
+            __('days.sunday')
+        ];
 
         AuditLog::create([
             'user_id' => $request->user()->id,
@@ -103,9 +111,9 @@ class ScheduleController extends Controller
         $callback = function() use ($shifts, $employees, $days) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['№', 'Рӯз', 'Вақти корӣ'], ';');
+            fputcsv($file, [__('common.number'), __('common.day'), __('common.workTime')], ';');
             foreach ($shifts as $index => $shift) {
-                $dayName = $shift->date_key === 'weekdays' ? 'Душанбе - Ҷумъа' : ($days[$shift->date_key] ?? $shift->date_key);
+                $dayName = $shift->date_key === 'weekdays' ? __('common.weekdays') : ($days[$shift->date_key] ?? $shift->date_key);
                 fputcsv($file, [
                     $index + 1,
                     $dayName,

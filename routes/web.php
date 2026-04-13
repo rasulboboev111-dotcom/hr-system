@@ -31,8 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/employees/export', [EmployeeController::class, 'exportCsv']);
     Route::post('/employees/import', [EmployeeController::class, 'importCsv']);
 
-    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index']);
-    Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update']);
+
     Route::get('/profile', function () { return Inertia::render('Profile'); });
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
 

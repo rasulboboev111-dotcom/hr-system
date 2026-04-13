@@ -31,7 +31,7 @@ const handleAddShift = () => {
 };
 
 const handleDeleteShift = (shiftId) => {
-    if(confirm(t('common.deleteConfirm') || 'Шумо мутмаин ҳастед?')) {
+    if(confirm(t('common.confirmDelete'))) {
         router.delete(`/schedule/${shiftId}`, { preserveScroll: true });
     }
 };

@@ -48,7 +48,7 @@ const parseMetadata = (metadata) => {
 
 const formatValue = (val) => {
     if (val === null || val === undefined) return '-';
-    if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+    if (typeof val === 'boolean') return val ? t('common.yes') : t('common.no');
     if (typeof val === 'object') return JSON.stringify(val);
     return String(val);
 };
