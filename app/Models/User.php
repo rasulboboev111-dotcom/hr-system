@@ -63,7 +63,10 @@ class User extends Authenticatable
             return false;
         }
 
-        $data = json_decode(file_get_contents($rolesFile), true);
+        $data = \Illuminate\Support\Facades\Cache::remember('roles_json_data', 60, function() use ($rolesFile) {
+            return json_decode(file_get_contents($rolesFile), true);
+        });
+
         if (!$data || !isset($data['roles'])) {
             return false;
         }
@@ -92,7 +95,10 @@ class User extends Authenticatable
             return [];
         }
 
-        $data = json_decode(file_get_contents($rolesFile), true);
+        $data = \Illuminate\Support\Facades\Cache::remember('roles_json_data', 60, function() use ($rolesFile) {
+            return json_decode(file_get_contents($rolesFile), true);
+        });
+
         if (!$data || !isset($data['roles'])) {
             return [];
         }

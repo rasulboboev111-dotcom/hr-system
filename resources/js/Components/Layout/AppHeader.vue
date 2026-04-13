@@ -10,6 +10,8 @@ const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const showUserMenu = ref(false);
 
+const clientIp = computed(() => page.props.clientIp || '127.0.0.1');
+
 const emit = defineEmits(['toggle-sidebar']);
 
 const handleLanguageSelect = (e) => {
@@ -41,7 +43,7 @@ const logout = () => {
             <!-- System Status -->
             <div class="hidden lg:flex items-center bg-[hsl(var(--muted))]/50 rounded-full px-3 py-1 mr-4 border border-[hsl(var(--border))]">
                 <Monitor class="h-3 w-3 text-emerald-500 mr-2" />
-                <span class="text-[10px] font-mono text-[hsl(var(--muted-foreground))] uppercase font-bold tracking-tight">Система фаъол</span>
+                <span class="text-[10px] font-mono text-[hsl(var(--muted-foreground))] uppercase font-bold tracking-tight">{{ clientIp }}</span>
             </div>
 
             <!-- Language selector -->
@@ -55,11 +57,6 @@ const logout = () => {
                 <ChevronDown class="h-3 w-3 absolute right-2 top-2.5 text-[hsl(var(--muted-foreground))] pointer-events-none" />
             </div>
 
-            <!-- Notifications -->
-            <button class="relative h-8 w-8 flex items-center justify-center rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] transition-colors">
-                <Bell class="h-4 w-4" />
-                <span class="absolute top-1.5 right-1.5 flex h-1.5 w-1.5 rounded-full bg-rose-500"></span>
-            </button>
 
             <!-- User Profile Dropdown -->
             <div class="relative">
@@ -80,9 +77,7 @@ const logout = () => {
                     <Link href="/profile" class="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-[hsl(var(--muted))] transition-colors">
                         <User class="h-4 w-4" /> Профил
                     </Link>
-                    <Link href="/settings" class="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-[hsl(var(--muted))] transition-colors">
-                        <Settings class="h-4 w-4" /> {{ t('menu.settings') }}
-                    </Link>
+
                     <div class="border-t border-[hsl(var(--border))]"></div>
                     <button @click="logout" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-500 font-medium hover:bg-rose-50 transition-colors">
                         <LogOut class="h-4 w-4" /> Баромадан

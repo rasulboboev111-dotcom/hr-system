@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index']);
     Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update']);
     Route::get('/profile', function () { return Inertia::render('Profile'); });
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
 
     Route::get('/archive', function (\Illuminate\Http\Request $request) { 
         if (!$request->user()->hasPermission('view_archive') && !$request->user()->hasPermission('view_all') && !$request->user()->hasPermission('all')) {

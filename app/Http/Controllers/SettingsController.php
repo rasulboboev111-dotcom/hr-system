@@ -16,6 +16,9 @@ class SettingsController extends Controller
 
     public function update(Request $request)
     {
+        if (!$request->user()->hasPermission('edit_all')) {
+            abort(403, 'Шумо ҳуқуқи таҳрири танзимотро надоред.');
+        }
         $data = $request->validate([
             'companyName' => 'required|string',
             'theme' => 'required|string',
@@ -24,8 +27,8 @@ class SettingsController extends Controller
 
         // Just mock updating settings by writing an Audit log
         AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Update Settings',
             'entity_type' => 'Settings',
             'description' => json_encode($data),

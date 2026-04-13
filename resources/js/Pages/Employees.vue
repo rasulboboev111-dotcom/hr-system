@@ -104,7 +104,8 @@ const form = useForm({
     last_name: '',
     email: '',
     role: '',
-    department: 'Engineering'
+    department: 'Engineering',
+    status: 'active'
 });
 
 const openAddModal = () => {
@@ -122,6 +123,7 @@ const openEditModal = (emp) => {
     form.email = emp.email;
     form.role = emp.role;
     form.department = emp.department;
+    form.status = emp.status || 'active';
     isModalOpen.value = true;
 };
 
@@ -318,6 +320,14 @@ const deleteEmployee = (id) => {
                         <datalist id="departments-list">
                             <option v-for="dept in departments" :key="dept.id" :value="dept.name"></option>
                         </datalist>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-[hsl(var(--muted-foreground))] uppercase">{{ t('common.status') }}</label>
+                        <select v-model="form.status" required class="flex h-10 w-full rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]">
+                            <option value="active">{{ t('common.active') }}</option>
+                            <option value="inactive">Ғайрифаъол</option>
+                            <option value="on_hold">{{ t('common.onHold') }}</option>
+                        </select>
                     </div>
 
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-[hsl(var(--border))] mt-6">

@@ -1,9 +1,22 @@
 <script setup>
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, usePage, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
-import { User, Mail, ShieldCheck } from 'lucide-vue-next';
+import { User, Mail, ShieldCheck, Save, Loader2 } from 'lucide-vue-next';
 
 const user = usePage().props.auth.user;
+
+const form = useForm({
+    email: user.email,
+    username: user.username,
+    password: '',
+});
+
+const submit = () => {
+    form.put('/profile', {
+        preserveScroll: true,
+        onSuccess: () => form.reset('password'),
+    });
+};
 </script>
 
 <template>
@@ -32,21 +45,41 @@ const user = usePage().props.auth.user;
                             <p class="text-sm text-[hsl(var(--muted-foreground))]">{{ user.username }}</p>
                         </div>
                         
-                        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-[hsl(var(--border))]">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2 text-xs font-bold uppercase text-[hsl(var(--muted-foreground))]">
-                                    <Mail class="h-3 w-3" /> Почтаи электронӣ
+                        <form @submit.prevent="submit" class="space-y-4 pt-4 border-t border-[hsl(var(--border))]">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[hsl(var(--muted-foreground))] flex items-center gap-2">
+                                        <Mail class="h-3 w-3" /> Почтаи электронӣ (Email)
+                                    </label>
+                                    <input v-model="form.email" type="email" class="w-full h-10 px-3 rounded-lg border border-[hsl(var(--border))] bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]" />
+                                    <div v-if="form.errors.email" class="text-xs text-rose-500">{{ form.errors.email }}</div>
                                 </div>
-                                <p class="text-sm font-medium">{{ user.email }}</p>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold uppercase text-[hsl(var(--muted-foreground))] flex items-center gap-2">
+                                        <User class="h-3 w-3" /> Логин (Username)
+                                    </label>
+                                    <input v-model="form.username" type="text" class="w-full h-10 px-3 rounded-lg border border-[hsl(var(--border))] bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]" />
+                                    <div v-if="form.errors.username" class="text-xs text-rose-500">{{ form.errors.username }}</div>
+                                </div>
+
+                                <div class="space-y-2 md:col-span-2">
+                                    <label class="text-xs font-bold uppercase text-[hsl(var(--muted-foreground))] flex items-center gap-2">
+                                        <ShieldCheck class="h-3 w-3" /> Рамзи нав (Холӣ монед, агар иваз кардан нахоҳед)
+                                    </label>
+                                    <input v-model="form.password" type="password" class="w-full h-10 px-3 rounded-lg border border-[hsl(var(--border))] bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]" />
+                                    <div v-if="form.errors.password" class="text-xs text-rose-500">{{ form.errors.password }}</div>
+                                </div>
                             </div>
                             
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2 text-xs font-bold uppercase text-[hsl(var(--muted-foreground))]">
-                                    <ShieldCheck class="h-3 w-3" /> Нақш
-                                </div>
-                                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded font-bold text-xs inline-flex uppercase">Администратор</span>
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" :disabled="form.processing" class="h-10 px-6 rounded-lg bg-[hsl(var(--primary))] text-primary-foreground font-bold text-sm tracking-wide flex text-white items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50">
+                                    <Loader2 v-if="form.processing" class="h-4 w-4 animate-spin" />
+                                    <Save v-else class="h-4 w-4" />
+                                    Сабт кардан
+                                </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -14,7 +14,7 @@ class Position extends Model
     protected $fillable = [
         'title',
         'department',
-        'salary_range',
+        'salary',
         'experience_level',
         'status',
         'required_skills',

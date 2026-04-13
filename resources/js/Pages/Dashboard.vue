@@ -61,23 +61,13 @@ const performers = computed(() => props.topPerformers || []);
 
     <AppLayout>
         <div class="space-y-8 max-w-[1600px] mx-auto">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]/90">
-                        {{ t('dashboard.title') }}
-                    </h1>
-                    <p class="text-xs text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-[0.2em] font-bold">
-                        {{ t('dashboard.subtitle') }}
-                    </p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button class="h-10 px-4 inline-flex items-center justify-center rounded-xl font-bold text-[10px] uppercase tracking-widest border border-[hsl(var(--primary))]/20 hover:bg-[hsl(var(--primary))]/5 text-[hsl(var(--foreground))]">
-                        {{ t('menu.reports') }}
-                    </button>
-                    <button class="h-10 px-4 inline-flex items-center justify-center rounded-xl bg-[hsl(var(--primary))] font-bold text-[10px] uppercase tracking-widest text-[hsl(var(--primary-foreground))] shadow-lg shadow-[hsl(var(--primary))]/20">
-                        {{ t('menu.settings') }}
-                    </button>
-                </div>
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]/90">
+                    {{ t('dashboard.title') }}
+                </h1>
+                <p class="text-xs text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-[0.2em] font-bold">
+                    {{ t('dashboard.subtitle') }}
+                </p>
             </div>
 
             <!-- Metrics Grid -->
@@ -152,38 +142,6 @@ const performers = computed(() => props.topPerformers || []);
                         </div>
                     </div>
 
-                    <!-- Vacancy Closing -->
-                    <div class="border-none shadow-sm rounded-2xl bg-white/70 backdrop-blur-md p-6">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-bold flex items-center gap-2">
-                                <Briefcase class="h-5 w-5 text-[hsl(var(--primary))]" />
-                                {{ t('dashboard.vacancyClosing') }}
-                            </h3>
-                            <button class="text-[hsl(var(--primary))] font-bold uppercase text-[10px] flex items-center gap-1 hover:underline">
-                                {{ t('dashboard.viewAll') }} <ChevronRight class="h-3 w-3" />
-                            </button>
-                        </div>
-                        <div class="space-y-6">
-                            <div class="space-y-3">
-                                <div class="flex justify-between text-[11px] font-bold uppercase tracking-tight">
-                                    <span class="text-[hsl(var(--muted-foreground))]/80">QA Automation</span>
-                                    <span class="text-[hsl(var(--primary))]">75%</span>
-                                </div>
-                                <div class="h-2.5 bg-[hsl(var(--muted))]/30 rounded-full overflow-hidden">
-                                    <div class="h-full bg-[hsl(var(--primary))] rounded-full" style="width: 75%"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-3">
-                                <div class="flex justify-between text-[11px] font-bold uppercase tracking-tight">
-                                    <span class="text-[hsl(var(--muted-foreground))]/80">Frontend React</span>
-                                    <span class="text-[hsl(var(--primary))]">40%</span>
-                                </div>
-                                <div class="h-2.5 bg-[hsl(var(--muted))]/30 rounded-full overflow-hidden">
-                                    <div class="h-full bg-[hsl(var(--primary))] rounded-full" style="width: 40%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Right Column -->

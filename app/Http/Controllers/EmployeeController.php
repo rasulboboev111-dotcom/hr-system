@@ -54,9 +54,10 @@ class EmployeeController extends Controller
             'email' => 'required|email|unique:employees',
             'role' => 'required|string',
             'department' => 'required|string',
+            'status' => 'nullable|string',
         ]);
         
-        $validated['status'] = 'active';
+        $validated['status'] = $validated['status'] ?? 'active';
 
         Employee::create($validated);
 
@@ -75,6 +76,7 @@ class EmployeeController extends Controller
             'email' => 'required|email|unique:employees,email,' . $employee->id,
             'role' => 'required|string',
             'department' => 'required|string',
+            'status' => 'nullable|string',
         ]);
         
         $employee->update($validated);
@@ -101,8 +103,8 @@ class EmployeeController extends Controller
         $employees = Employee::all();
 
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Export Employees',
             'entity_type' => 'Employee',
             'description' => 'Exported employees data to CSV',
@@ -222,8 +224,8 @@ class EmployeeController extends Controller
         fclose($file);
 
         \App\Models\AuditLog::create([
-            'user_id' => 'system',
-            'user_name' => 'Admin User',
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
             'action' => 'Import Employees',
             'entity_type' => 'Employee',
             'description' => 'Imported employees from CSV',

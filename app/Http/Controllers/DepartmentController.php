@@ -23,16 +23,38 @@ class DepartmentController extends Controller
             $query->where('name', 'ilike', "%{$search}%");
         }
 
-        $departments = $query->get()->map(function($dept) {
-            $employeesCount = Employee::where('department', $dept->name)->count();
-            $vacanciesCount = Position::where('department', $dept->name)->where('status', 'vacant')->count();
-            $filledCount = Position::where('department', $dept->name)->where('status', 'filled')->count();
+        $depts = $query->get();
+        $deptNames = $depts->pluck('name')->toArray();
+        
+        $employeeCounts = Employee::whereIn('department', $deptNames)
+            ->selectRaw('department, count(*) as count, sum(CAST(COALESCE(salary, 0) AS NUMERIC)) as total_salary')
+            ->groupBy('department')
+            ->get()
+            ->keyBy('department');
+            
+        $positions = Position::whereIn('department', $deptNames)->get();
+
+        $departments = $depts->map(function($dept) use ($employeeCounts, $positions) {
+            $eData = $employeeCounts->get($dept->name);
+            $employeesCount = $eData ? current((array)$eData)->count ?? $eData['count'] ?? 0 : 0;
+            // Since we use Eloquent, $eData is an object
+            if (is_object($eData)) {
+                $employeesCount = $eData->count;
+                $eSalary = $eData->total_salary;
+            } else {
+                $employeesCount = 0;
+                $eSalary = 0;
+            }
+
+            $deptPositions = $positions->where('department', $dept->name);
+            $vacanciesCount = $deptPositions->where('status', 'vacant')->count();
+            $filledCount = $deptPositions->where('status', 'filled')->count();
+            $pSalary = $deptPositions->sum('salary');
             
             $totalPositions = $vacanciesCount + $filledCount;
             $fillRate = $totalPositions > 0 ? round(($filledCount / $totalPositions) * 100) : ($employeesCount > 0 ? 100 : 0);
             
-            // Calculate a mock budget based on employees and vacancies average
-            $budget = Employee::where('department', $dept->name)->sum('salary') + Position::where('department', $dept->name)->sum('salary');
+            $budget = $eSalary + $pSalary;
 
             return [
                 'id' => $dept->id,
@@ -40,7 +62,7 @@ class DepartmentController extends Controller
                 'employees' => $employeesCount,
                 'vacancies' => $vacanciesCount,
                 'fillRate' => $fillRate,
-                'budget' => number_format($budget) . ' TJ'
+                'budget' => number_format((float)$budget) . ' TJ'
             ];
         });
 

@@ -8,7 +8,6 @@ const { t } = useI18n();
 const form = useForm({
     email: '',
     password: '',
-    remember: false,
 });
 
 const submit = () => {
@@ -50,13 +49,7 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between pt-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" v-model="form.remember" class="rounded border-[hsl(var(--border))] bg-transparent" />
-                            <span class="text-xs font-medium text-[hsl(var(--muted-foreground))]">Маро дар ёд дор</span>
-                        </label>
-                        <a href="#" class="text-xs font-bold text-[hsl(var(--primary))] hover:underline">Рамзро фаромӯш кардед?</a>
-                    </div>
+
 
                     <button type="submit" :disabled="form.processing" class="w-full h-10 flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-widest bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-lg shadow-[hsl(var(--primary))]/20 hover:bg-[hsl(var(--primary))]/90 disabled:opacity-50 mt-4">
                         <span v-if="form.processing">Воридшавӣ...</span>

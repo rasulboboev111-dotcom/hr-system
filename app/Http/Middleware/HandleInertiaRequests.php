@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'permissions' => $request->user() ? $request->user()->getPermissionIds() : [],
             ],
+            'clientIp' => $request->ip(),
             // other shared variables
         ]);
     }

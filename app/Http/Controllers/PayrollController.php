@@ -110,10 +110,12 @@ class PayrollController extends Controller
             // UTF-8 BOM for Excel
             fwrite($file, "\xEF\xBB\xBF");
             fputcsv($file, ['№', 'Ном ва Насаб', 'Мансаб', 'Шӯъба', 'Маоши асосӣ'], ';');
+            $records = PayrollRecord::where('month_year', date('Y-m'))->get()->keyBy('employee_id');
+
             foreach ($employees as $index => $emp) {
                 // Determine salary
                 $salary = 8500;
-                $record = PayrollRecord::where('employee_id', $emp->id)->where('month_year', date('Y-m'))->first();
+                $record = $records->get($emp->id);
                 if ($record) {
                     $salary = $record->salary;
                 }

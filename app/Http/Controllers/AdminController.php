@@ -69,6 +69,7 @@ class AdminController extends Controller
         }
 
         file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        \Illuminate\Support\Facades\Cache::forget('roles_json_data');
 
         return redirect()->back();
     }
@@ -92,6 +93,7 @@ class AdminController extends Controller
         }));
 
         file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        \Illuminate\Support\Facades\Cache::forget('roles_json_data');
 
         return redirect()->back();
     }
@@ -111,8 +113,17 @@ class AdminController extends Controller
 
         $rolesFile = storage_path('app/roles.json');
         $rolesData = file_exists($rolesFile) ? json_decode(file_get_contents($rolesFile), true) : ['roles' => [], 'permissions' => []];
+
+        // Check for duplicate permission id
+        foreach ($rolesData['permissions'] as $perm) {
+            if ($perm['id'] === $data['id']) {
+                return redirect()->back()->withErrors(['error' => 'Ин ҳуқуқ аллакай мавҷуд аст.']);
+            }
+        }
+
         $rolesData['permissions'][] = $data;
         file_put_contents($rolesFile, json_encode($rolesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        \Illuminate\Support\Facades\Cache::forget('roles_json_data');
 
         return redirect()->back();
     }
@@ -218,10 +229,7 @@ class AdminController extends Controller
     public function exportCsv(Request $request)
     {
         if (!$request->user()->hasPermission('export_users')) {
-            // Note: export_users wasn't explicitly in roles.json, I should add it or use view_users
-            // For now I'll use view_users or add it. I'll add it to roles.json later.
-            // Actually I'll use export_users and check if it exists in roles.json.
-            // It's not in roles.json yet. I'll add it.
+            abort(403, 'Шумо ҳуқуқи экспорти корбаронро надоред.');
         }
 
         $users = User::all();
@@ -346,7 +354,7 @@ class AdminController extends Controller
                         'first_name' => $firstName,
                         'last_name' => $lastName,
                         'email' => $email,
-                        'password' => Hash::make('password123'),
+                        'password' => Hash::make(\Illuminate\Support\Str::random(16)),
                         'role_ids' => $roleIds
                     ]);
                 }
@@ -369,9 +377,8 @@ class AdminController extends Controller
     public function auditIndex(Request $request)
     {
         // Require direct admin role or specific permission for audit
-        $userRoles = $request->user()->role_ids ?? [];
-        if (!in_array('admin', $userRoles)) {
-            $this->checkPermission($request, 'view_audit');
+        if (!$request->user()->hasPermission('view_audit')) {
+            abort(403, 'Шумо ҳуқуқи дидани аудитро надоред.');
         }
 
         $query = AuditLog::orderBy('timestamp', 'desc');
