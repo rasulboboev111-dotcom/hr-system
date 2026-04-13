@@ -2,7 +2,7 @@
 import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { 
     Briefcase, Plus, Search, Filter, Download, 
     MoreHorizontal, Edit2, Trash2, Users2, ShieldCheck, HelpCircle,
@@ -21,7 +21,6 @@ const props = defineProps({
 const page = usePage();
 const { t } = useI18n();
 
-import { watch } from 'vue';
 
 const searchQuery = ref(props.filters?.search || '');
 

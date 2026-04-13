@@ -2,7 +2,7 @@
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { 
   Wallet, Clock, CheckCircle2, Download, Filter, 
   Search, Plus, MoreVertical, Edit2, Trash2, FileText,
@@ -33,7 +33,6 @@ const payrollData = computed(() => {
   });
 });
 
-import { watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 const searchTerm = ref(props.filters?.search || '');

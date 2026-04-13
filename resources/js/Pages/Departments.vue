@@ -2,7 +2,7 @@
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Components/Layout/AppLayout.vue';
 import { useI18n } from '@/lib/i18n';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Building2, Users, Briefcase, Plus, Trash2, PieChart, Search } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -60,7 +60,6 @@ const deleteDept = (id) => {
     }
 };
 
-import { watch } from 'vue';
 
 const searchQuery = ref(props.filters?.search || '');
 
