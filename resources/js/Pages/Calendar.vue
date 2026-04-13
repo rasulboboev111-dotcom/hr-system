@@ -246,7 +246,7 @@ const canDelete = computed(() => page.props.auth.permissions.includes('delete_ca
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-[9px] font-extrabold border-none px-3 py-1 uppercase bg-[hsl(var(--muted))] rounded-md">
-                                                {{ event.type }}
+                                                {{ t(`calendar.types.${event.type.toLowerCase()}`) || event.type }}
                                             </span>
                                             <button v-if="canDelete" @click="handleDeleteEvent(event.id)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-md transition-colors opacity-0 group-hover:opacity-100">
                                                 <Trash2 class="h-3.5 w-3.5" />
@@ -284,9 +284,9 @@ const canDelete = computed(() => page.props.auth.permissions.includes('delete_ca
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase font-bold">{{ t('calendar.eventType') }}</label>
                             <select v-model="form.type" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none">
-                                <option value="Meeting">{{ t('calendar.types.meeting') || 'Meeting' }}</option>
-                                <option value="Interview">{{ t('calendar.types.interview') || 'Interview' }}</option>
-                                <option value="Training">{{ t('calendar.types.training') || 'Training' }}</option>
+                                <option value="Meeting">{{ t('calendar.types.meeting') }}</option>
+                                <option value="Interview">{{ t('calendar.types.interview') }}</option>
+                                <option value="Training">{{ t('calendar.types.training') }}</option>
                             </select>
                         </div>
                     </div>

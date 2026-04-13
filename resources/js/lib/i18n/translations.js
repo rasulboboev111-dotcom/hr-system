@@ -178,7 +178,12 @@ export const translations = {
       events: "чорабинӣ",
       eventTitle: "Номи чорабинӣ",
       eventTime: "Вақт",
-      eventType: "Намуд"
+      eventType: "Намуд",
+      types: {
+        meeting: "Ҷаласа",
+        interview: "Мусоҳиба",
+        training: "Омӯзиш"
+      }
     },
     schedule: {
       title: "Ҷадвали корӣ",
@@ -548,7 +553,12 @@ export const translations = {
       events: "событий",
       eventTitle: "Название события",
       eventTime: "Время",
-      eventType: "Тип"
+      eventType: "Тип",
+      types: {
+        meeting: "Встреча",
+        interview: "Собеседование",
+        training: "Обучение"
+      }
     },
     schedule: {
       title: "График работы",
@@ -912,7 +922,12 @@ export const translations = {
       events: "events",
       eventTitle: "Event Title",
       eventTime: "Time",
-      eventType: "Type"
+      eventType: "Type",
+      types: {
+        meeting: "Meeting",
+        interview: "Interview",
+        training: "Training"
+      }
     },
     schedule: {
       title: "Work Schedule",
