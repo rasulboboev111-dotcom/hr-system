@@ -246,7 +246,7 @@ class AdminController extends Controller
         $callback = function() use ($users) {
             $file = fopen('php://output', 'w');
             fwrite($file, "\xEF\xBB\xBF");
-            fputcsv($file, ['ID', 'Логин', 'Ном', 'Насаб', 'Почтаи электронӣ', 'Нақш'], ';');
+            fputcsv($file, ['ID', 'Логин', 'Ном', 'Насаб', 'Почтаи электронӣ', 'Нақш', 'Рамз'], ';');
             foreach ($users as $u) {
                 fputcsv($file, [
                     $u->id,
@@ -254,7 +254,8 @@ class AdminController extends Controller
                     $u->first_name,
                     $u->last_name,
                     $u->email,
-                    implode(',', $u->role_ids ?? [])
+                    implode(',', $u->role_ids ?? []),
+                    ''
                 ], ';');
             }
             fclose($file);
@@ -339,22 +340,28 @@ class AdminController extends Controller
             $roleStr = $cleanRow[5] ?? '';
             $roleIds = array_filter(array_map('trim', explode(',', $roleStr)));
             if (empty($roleIds)) $roleIds = ['hr_mgr'];
+            
+            $passwordRaw = $cleanRow[6] ?? '';
 
             if (!empty($email) && !empty($username)) {
                 $user = User::where('email', $email)->orWhere('username', $username)->first();
                 if ($user) {
-                    $user->update([
+                    $updateData = [
                         'first_name' => $firstName,
                         'last_name' => $lastName,
                         'role_ids' => $roleIds
-                    ]);
+                    ];
+                    if (!empty($passwordRaw)) {
+                        $updateData['password'] = Hash::make($passwordRaw);
+                    }
+                    $user->update($updateData);
                 } else {
                     User::create([
                         'username' => $username,
                         'first_name' => $firstName,
                         'last_name' => $lastName,
                         'email' => $email,
-                        'password' => Hash::make(\Illuminate\Support\Str::random(16)),
+                        'password' => Hash::make($passwordRaw ?: \Illuminate\Support\Str::random(16)),
                         'role_ids' => $roleIds
                     ]);
                 }

@@ -136,4 +136,85 @@ class PayrollController extends Controller
             'Content-Disposition' => 'attachment; filename="payroll_export.csv"',
         ]);
     }
+
+    public function importCsv(Request $request)
+    {
+        if (!$request->user()->hasPermission('add_payroll') && !$request->user()->hasPermission('all')) {
+            abort(403, 'Шумо ҳуқуқи импорти маълумоти маошро надоред.');
+        }
+
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('file');
+        $handle = fopen($file->getRealPath(), 'r');
+        
+        // Skip BOM if present
+        $bom = fread($handle, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($handle);
+        }
+
+        $header = fgetcsv($handle, 1000, ';'); // skip header
+
+        while (($data = fgetcsv($handle, 1000, ';')) !== FALSE) {
+            if (count($data) < 5) continue;
+            
+            $fullName = trim($data[1]);
+            $role = trim($data[2]);
+            $department = trim($data[3]);
+            $salary = floatval(str_replace(' ', '', str_replace(',', '.', trim($data[4]))));
+            
+            $nameParts = explode(' ', $fullName, 2);
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
+            if (empty($firstName)) continue;
+
+            try {
+                $employee = Employee::firstOrCreate(
+                    ['name' => $firstName, 'last_name' => $lastName],
+                    [
+                        'email' => strtolower($firstName) . rand(100,999) . '@example.com',
+                        'role' => $role === 'Маълум нест' ? 'Unknown' : $role,
+                        'department' => $department === 'Маълум нест' ? 'Unknown' : $department,
+                        'status' => 'active'
+                    ]
+                );
+
+                PayrollRecord::updateOrCreate(
+                    ['employee_id' => $employee->id, 'month_year' => date('Y-m')],
+                    ['bonus' => 0, 'salary' => $salary]
+                );
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Import Error: " . $e->getMessage(), ['data' => $data]);
+                continue;
+            }
+        }
+
+        fclose($handle);
+
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'user_name' => $request->user()->username,
+            'action' => 'Import Payroll',
+            'entity_type' => 'Payroll',
+            'description' => 'Imported payroll data from CSV'
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        if (!$request->user()->hasPermission('delete_payroll') && !$request->user()->hasPermission('all')) {
+            abort(403, 'Шумо ҳуқуқи нест кардани маълумоти маошро надоред.');
+        }
+
+        // We delete the record for the current month/year or the one associated with the record ID
+        // For simplicity, we find the record for this employee and delete it
+        PayrollRecord::where('employee_id', $id)->delete();
+
+        return redirect()->back();
+    }
 }

@@ -14,6 +14,7 @@ const props = defineProps({
     fillRate: Number,
     turnover: Number,
     topPerformers: Array,
+    quickStats: Object,
 });
 
 const { t } = useI18n();
@@ -134,7 +135,7 @@ const performers = computed(() => props.topPerformers || []);
                                 <div class="text-right">
                                     <div class="flex items-center gap-1 text-emerald-600 font-bold text-sm">
                                         <Zap class="h-3 w-3 fill-emerald-600" />
-                                        98%
+                                        {{ emp.performance_score || 95 }}%
                                     </div>
                                     <p class="text-[9px] text-[hsl(var(--muted-foreground))] uppercase font-bold">Самаранокӣ</p>
                                 </div>
@@ -152,15 +153,15 @@ const performers = computed(() => props.topPerformers || []);
                         <div class="space-y-4">
                             <div class="flex items-center justify-between text-xs">
                                 <span class="text-[hsl(var(--muted-foreground))]">Кормандони нав</span>
-                                <span class="font-bold">12</span>
+                                <span class="font-bold">{{ props.quickStats?.newEmployees || 0 }}</span>
                             </div>
                             <div class="flex items-center justify-between text-xs">
                                 <span class="text-[hsl(var(--muted-foreground))]">Дархостҳои интизорӣ</span>
-                                <span class="font-bold text-amber-600">5</span>
+                                <span class="font-bold text-amber-600">{{ props.quickStats?.pendingRequests || 0 }}</span>
                             </div>
                             <div class="flex items-center justify-between text-xs">
                                 <span class="text-[hsl(var(--muted-foreground))]">Мусоҳибаҳои банақшагирифта</span>
-                                <span class="font-bold">8</span>
+                                <span class="font-bold">{{ props.quickStats?.scheduledInterviews || 0 }}</span>
                             </div>
                         </div>
                     </div>

@@ -55,11 +55,6 @@ const navigation = computed(() => {
             title: t('menu.payroll'),
             icon: Banknote,
             href: '/payroll',
-        },
-        {
-            title: t('menu.analytics'),
-            icon: History,
-            href: '/analytics',
         }
     ];
 

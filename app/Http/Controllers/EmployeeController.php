@@ -55,6 +55,7 @@ class EmployeeController extends Controller
             'role' => 'required|string',
             'department' => 'required|string',
             'status' => 'nullable|string',
+            'salary' => 'nullable|numeric',
         ]);
         
         $validated['status'] = $validated['status'] ?? 'active';
@@ -77,6 +78,7 @@ class EmployeeController extends Controller
             'role' => 'required|string',
             'department' => 'required|string',
             'status' => 'nullable|string',
+            'salary' => 'nullable|numeric',
         ]);
         
         $employee->update($validated);

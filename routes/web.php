@@ -129,8 +129,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/payroll', [\App\Http\Controllers\PayrollController::class, 'index']);
     Route::post('/payroll/bonus', [\App\Http\Controllers\PayrollController::class, 'storeBonus']);
     Route::get('/payroll/export', [\App\Http\Controllers\PayrollController::class, 'exportCsv']);
-
-    Route::get('/analytics', [\App\Http\Controllers\AnalyticsController::class, 'index']);
+    Route::post('/payroll/import', [\App\Http\Controllers\PayrollController::class, 'importCsv']);
+    Route::delete('/payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'destroy']);
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminController::class, 'usersIndex']);

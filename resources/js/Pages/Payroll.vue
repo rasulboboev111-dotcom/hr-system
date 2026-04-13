@@ -26,7 +26,8 @@ const payrollData = computed(() => {
     const record = props.payroll_records.find(r => r.employee_id === e.id);
     return {
       ...e,
-      salary: record ? record.salary : 8500,
+      salary: record ? record.salary : (e.salary || 8500),
+      hasRecord: !!record,
       adjustment: 0
     };
   });
@@ -54,6 +55,20 @@ const form = useForm({
   month_year: new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0')
 });
 
+watch(() => form.employee_name, (newName) => {
+    if (newName) {
+        const emp = payrollData.value.find(e => {
+            const fName = [e.name, e.last_name].filter(Boolean).join(' ');
+            return fName === newName;
+        });
+        if (emp) {
+            form.role = emp.role || '';
+            form.department = emp.department || '';
+            form.salary = emp.salary || '';
+        }
+    }
+});
+
 const uniqueRoles = computed(() => {
     return [...new Set(props.employees.map(e => e.role).filter(Boolean))];
 });
@@ -69,8 +84,12 @@ const filteredPayroll = computed(() => {
   });
 });
 
+const tableData = computed(() => {
+    return sortedPayroll.value.filter(e => e.hasRecord);
+});
+
 const totalPayroll = computed(() => 
-  sortedPayroll.value.reduce((acc, e) => acc + (parseFloat(e.salary) || 0), 0)
+  tableData.value.reduce((acc, e) => acc + (parseFloat(e.salary) || 0), 0)
 );
 
 const sortKey = ref(null);
@@ -89,7 +108,7 @@ const handleSort = (key) => {
 };
 
 const sortedPayroll = computed(() => {
-    let items = [...payrollData.value];
+    let items = [...filteredPayroll.value];
     if (sortKey.value && sortDir.value) {
         items.sort((a, b) => {
             let aVal, bVal;
@@ -129,6 +148,39 @@ const handleExport = () => {
     window.location.href = '/payroll/export';
 };
 
+const fileInput = ref(null);
+
+const triggerImport = () => {
+    fileInput.value.click();
+};
+
+const handleImport = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!confirm(t('common.confirm') || 'Confirm import?')) {
+        event.target.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    router.post('/payroll/import', formData, {
+        preserveScroll: true,
+        preserveState: true,
+        forceFormData: true,
+        onSuccess: () => {
+            alert(t('common.importSuccess') || 'Import completed successfully');
+            event.target.value = '';
+        },
+        onError: () => {
+            alert(t('common.error') || 'Error importing file');
+            event.target.value = '';
+        }
+    });
+};
+
 const activeDropdown = ref(null);
 const toggleDropdown = (id, event) => {
     event.stopPropagation();
@@ -146,7 +198,7 @@ onUnmounted(() => document.removeEventListener('click', closeDropdown));
 
 const handleEdit = (emp) => {
     activeDropdown.value = null;
-    form.employee_name = `${emp.name} ${emp.last_name}`.trim();
+    form.employee_name = [emp.name, emp.last_name].filter(Boolean).join(' ');
     form.role = emp.role;
     form.department = emp.department;
     form.salary = emp.salary;
@@ -154,10 +206,11 @@ const handleEdit = (emp) => {
 };
 
 const handleDelete = (emp) => {
-    // Delete logic (placeholder)
     activeDropdown.value = null;
-    if(confirm('Are you sure you want to delete this record?')) {
-        // Implement delete
+    if(confirm(t('common.confirm') || 'Are you sure?')) {
+        router.delete(`/payroll/${emp.id}`, {
+            preserveScroll: true
+        });
     }
 };
 
@@ -165,6 +218,7 @@ const canAdd = computed(() => page.props.auth.permissions.includes('add_payroll'
 const canEdit = computed(() => page.props.auth.permissions.includes('edit_payroll') || page.props.auth.permissions.includes('all'));
 const canDelete = computed(() => page.props.auth.permissions.includes('delete_payroll') || page.props.auth.permissions.includes('all'));
 const canExport = computed(() => page.props.auth.permissions.includes('export_payroll') || page.props.auth.permissions.includes('all'));
+const canImport = computed(() => page.props.auth.permissions.includes('add_payroll') || page.props.auth.permissions.includes('all'));
 </script>
 
 <template>
@@ -178,6 +232,10 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_pa
                     <p class="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-widest font-bold">{{ t('payroll.subtitle') }}</p>
                 </div>
                  <div class="flex items-center gap-2">
+                    <input type="file" ref="fileInput" accept=".csv" class="hidden" @change="handleImport" />
+                    <button v-if="canImport" @click="triggerImport" class="h-9 px-3 border border-[hsl(var(--border))] rounded-lg inline-flex items-center justify-center gap-2 uppercase font-bold text-[10px] tracking-widest hover:bg-[hsl(var(--muted))]">
+                        <Download class="h-4 w-4 rotate-180" /> {{ t('common.import') }}
+                    </button>
                     <button v-if="canExport" @click="handleExport" class="h-9 px-3 border border-[hsl(var(--border))] rounded-lg inline-flex items-center justify-center gap-2 uppercase font-bold text-[10px] tracking-widest hover:bg-[hsl(var(--muted))]">
                         <Download class="h-4 w-4" /> {{ t('common.export') }}
                     </button>
@@ -262,8 +320,8 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_pa
                             </tr>
                         </thead>
                         <tbody>
-                            <template v-if="sortedPayroll.length > 0">
-                                <tr v-for="(emp, i) in sortedPayroll" :key="emp.id" class="text-[11px] group transition-colors hover:bg-[hsl(var(--primary))]/[0.03] border-b border-[hsl(var(--border))] last:border-0">
+                            <template v-if="tableData.length > 0">
+                                <tr v-for="(emp, i) in tableData" :key="emp.id" class="text-[11px] group transition-colors hover:bg-[hsl(var(--primary))]/[0.03] border-b border-[hsl(var(--border))] last:border-0">
                                     <td class="font-bold text-[hsl(var(--primary))] px-6 py-4">{{ i + 1 }}</td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-col">
@@ -321,7 +379,7 @@ const canExport = computed(() => page.props.auth.permissions.includes('export_pa
                         <label class="text-[10px] uppercase font-bold text-[hsl(var(--muted-foreground))]">{{ t('menu.employees') }}</label>
                         <input v-model="form.employee_name" list="payroll-emp-list" placeholder="Ному насаби корманд" class="h-9 w-full text-xs rounded-lg border border-[hsl(var(--border))] bg-transparent px-3 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]" autocomplete="off" />
                         <datalist id="payroll-emp-list">
-                            <option v-for="emp in payrollData" :key="emp.id" :value="emp.name + ' ' + emp.last_name"></option>
+                            <option v-for="emp in payrollData" :key="emp.id" :value="[emp.name, emp.last_name].filter(Boolean).join(' ')"></option>
                         </datalist>
                     </div>
                     <div class="space-y-1.5">

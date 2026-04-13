@@ -163,6 +163,34 @@ export const translations = {
       addEntry: "Иловаи сабти давомот",
       dayOfMonth: "Рӯзи моҳ"
     },
+    archive: {
+      title: "Байгонӣ",
+      subtitle: "Рӯйхати кормандони собиқ",
+      readOnly: "Танҳо барои хондан",
+      addToArchive: "Илова ба байгонӣ",
+      search: "Ҷустуҷӯ дар байгонӣ...",
+      table: {
+        fullname: "Ном ва Насаб",
+        lastRole: "Мансаби охирин",
+        department: "Шуъба",
+        workPeriod: "Мӯҳлати кор",
+        leaveReason: "Сабаби хориҷшавӣ",
+        action: "Амал"
+      },
+      laidOff: "Ихтисор шуд",
+      empty: "Байгонӣ холӣ аст",
+      modal: {
+        title: "Илова ба Байгонӣ",
+        subtitle: "Корманди собиқро сабт кунед",
+        submit: "Сабт ба Байгонӣ"
+      },
+      actions: {
+        edit: "Таҳрир",
+        editSubmit: "Таҳрир кардан",
+        fullDelete: "Пурра нест кардан"
+      },
+      confirmDelete: "Оё мутмаин ҳастед? Ин амалро баргардонидан ғайриимкон аст."
+    },
     payroll: {
       title: "Музди меҳнат",
       subtitle: "Баҳисобгирии музди меҳнат ва мукофотпулӣ",
@@ -398,6 +426,34 @@ export const translations = {
       absent: "Отсутствовал",
       totalHours: "Итого (часов)"
     },
+    archive: {
+      title: "Архив",
+      subtitle: "Список бывших сотрудников",
+      readOnly: "Только для чтения",
+      addToArchive: "Добавить в архив",
+      search: "Поиск в архиве...",
+      table: {
+        fullname: "Имя и Фамилия",
+        lastRole: "Последняя должность",
+        department: "Отдел",
+        workPeriod: "Период работы",
+        leaveReason: "Причина увольнения",
+        action: "Действие"
+      },
+      laidOff: "Сокращен",
+      empty: "Архив пуст",
+      modal: {
+        title: "Добавить в Архив",
+        subtitle: "Запишите бывшего сотрудника",
+        submit: "Сохранить в Архив"
+      },
+      actions: {
+        edit: "Редактировать",
+        editSubmit: "Редактировать",
+        fullDelete: "Полностью удалить"
+      },
+      confirmDelete: "Вы уверены? Это действие необратимо."
+    },
     payroll: {
       title: "Зарплатный фонд",
       subtitle: "Учет выплат и вознаграждений",
@@ -632,6 +688,34 @@ export const translations = {
       late: "Late",
       absent: "Absent",
       totalHours: "Total (hours)"
+    },
+    archive: {
+      title: "Archive",
+      subtitle: "Former employees list",
+      readOnly: "Read only",
+      addToArchive: "Add to archive",
+      search: "Search in archive...",
+      table: {
+        fullname: "Full Name",
+        lastRole: "Last Position",
+        department: "Department",
+        workPeriod: "Work Period",
+        leaveReason: "Leave Reason",
+        action: "Action"
+      },
+      laidOff: "Laid off",
+      empty: "Archive is empty",
+      modal: {
+        title: "Add to Archive",
+        subtitle: "Record a former employee",
+        submit: "Save to Archive"
+      },
+      actions: {
+        edit: "Edit",
+        editSubmit: "Submit Edit",
+        fullDelete: "Delete completely"
+      },
+      confirmDelete: "Are you sure? This action cannot be undone."
     },
     payroll: {
       title: "Payroll Management",

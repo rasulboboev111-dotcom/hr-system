@@ -10,6 +10,14 @@ import {
     ChevronLeft, ChevronRight, Palmtree, Coffee, Trash2, Search
 } from 'lucide-vue-next';
 
+const props = defineProps({
+    eventsList: {
+        type: Array,
+        default: () => []
+    },
+    filters: { type: Object, default: () => ({ search: '' }) }
+});
+
 const searchQuery = ref(props.filters?.search || '');
 
 watch(searchQuery, (value) => {
@@ -18,14 +26,6 @@ watch(searchQuery, (value) => {
         replace: true,
         preserveScroll: true
     });
-});
-
-const props = defineProps({
-    eventsList: {
-        type: Array,
-        default: () => []
-    },
-    filters: { type: Object, default: () => ({ search: '' }) }
 });
 const page = usePage();
 const { t } = useI18n();
