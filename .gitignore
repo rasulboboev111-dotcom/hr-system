@@ -4,7 +4,7 @@
 /public/storage
 /storage/*.key
 /vendor
-.env
+# .env (removed from ignore as per user request)
 .env.backup
 .env.production
 .phpunit.result.cache
